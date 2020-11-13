@@ -2,8 +2,8 @@ import tensorflow as tf
 keras = tf.keras
 layers = keras.layers
 
+from local import training_data_folder
 
-from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
 import math

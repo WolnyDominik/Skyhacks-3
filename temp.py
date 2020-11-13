@@ -1,16 +1,13 @@
 from model_manager import *
-import cv2
-import numpy as np
+
+#najpierw ustawić scierzki wszystkie
 
 manager = Manager()
 manager.loadCsv()
-
-#manager.processAllImagesToBinary(manager.all_image_names.to_numpy())
-
-
+#manager.processAllImagesToBinary(manager.all_image_names.to_numpy()) # to wywołać tylko i wyłącznie raz
 manager.importTrainingDataFromBinaryFile()
-manager.initializeModel()
-print(manager.x_test)
-print(manager.x_train)
-print(manager.y_test)
-print(manager.y_train)
+
+manager.loadModel("wygwywamy.h5")
+
+manager.train(2)
+manager.test()
