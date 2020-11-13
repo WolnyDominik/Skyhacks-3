@@ -74,6 +74,9 @@ docs/_build/
 # PyBuilder
 target/
 
+/live_test_images
+/training_images
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
