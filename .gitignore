@@ -76,7 +76,9 @@ docs/_build/
 
 # PyBuilder
 target/
-
+live_test_images/
+training_images/
+.vscode/
 # Jupyter Notebook
 .ipynb_checkpoints
 
