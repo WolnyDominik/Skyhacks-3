@@ -27,6 +27,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+*.bin
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -73,9 +75,6 @@ docs/_build/
 
 # PyBuilder
 target/
-
-/live_test_images
-/training_images
 
 # Jupyter Notebook
 .ipynb_checkpoints
