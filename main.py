@@ -13,5 +13,8 @@ live_test_path = Path('live_test_images')
 print(tf.__version__)
 
 path = './training_images/'
-for filename in os.listdir(path):
-    print(path+filename)
+
+files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+
+for filename in files:
+    print(filename)
