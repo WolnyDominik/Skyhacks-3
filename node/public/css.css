@@ -39,6 +39,12 @@ body > main > *{
     justify-content: space-around;
 }
 
+.redalert {
+    text-align: center;
+    font-size: 1em;
+    color: red;
+}
+
 .upload_button{
     width: 30%;
     padding: 20px;
