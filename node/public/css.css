@@ -42,7 +42,8 @@ body > main > *{
 .redalert {
     text-align: center;
     font-size: 1em;
-    color: red;
+    color: rgb(197, 107, 107);
+    font-weight: bold;
 }
 
 .upload_button{
