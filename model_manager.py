@@ -209,7 +209,7 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
         labelColor="#ffffff"
     )
     
-    save(chart,'chart.svg')
+    save(chart,'film.html')
 
 
 class Manager:
