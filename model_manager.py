@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
+# import tensorflow_addons as tfa
 keras = tf.keras
 layers = keras.layers
 
@@ -8,6 +8,8 @@ import os
 import math
 import cv2
 import numpy as np
+from pathlib import Path
+
 
 #from keras.applications.resnet50 import preprocess_input
 #from keras.preprocessing.image import ImageDataGenerator
@@ -33,6 +35,7 @@ columns = ['Name', 'Amusement park', 'Animals', 'Bench', 'Building', 'Castle',
        'Road', 'Rocks', 'Snow', 'Sport', 'Sports facility', 'Stairs', 'Trees',
        'Watercraft', 'Windows']
 
+
 def seperateTests(test_rate = 0.1, path = csv_path, test_path = csv_test_path, train_path = csv_train_path):
     print("Seperating tests...")
     csv_data = pd.read_csv(path)
@@ -55,14 +58,17 @@ def proccessAllImages( paths):
         images[i] = processImage(paths[i])
     return images
 
+
 def processImage(path):
     image = cv2.imread(path)
     return cv2.cvtColor(cv2.resize(image, (RESOLUTION, RESOLUTION)), cv2.COLOR_BGR2RGB)
 
+
 def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
     print("Processing images...")
-    if(names_list == None):
-        names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
+    # print(names_list)
+    # if names_list == None:
+    #     names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
     end_i = names_list.size
     if count > 0:
         end_i = math.min(start_i + count, end_i)
@@ -74,8 +80,10 @@ def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, imag
     imagesData.tofile(bin_path)
     print("Done")
 
+
 def importImagesFromBinaryFile(path_to_file):
     return np.fromfile(path_to_file, dtype=np.uint8).reshape([-1, RESOLUTION, RESOLUTION, 3])
+
 
 def convertPredictionsToCsv(predictions, files, path_to_csv):
     print("Writing to csv...")
@@ -87,6 +95,7 @@ def convertPredictionsToCsv(predictions, files, path_to_csv):
     print("Done.")
     return df
 
+
 def convertPredictionsArrayToLabels(predictions):
     res = []
     for prediction in predictions:
@@ -97,11 +106,39 @@ def convertPredictionsArrayToLabels(predictions):
         res.append(subres)
     return res
 
+
+def film_to_frames(filename: str, path):
+    idx = filename.rfind('.')
+    movie_name = filename[:idx]
+
+    movie = cv2.VideoCapture(filename)
+    opened = movie.isOpened
+    
+    if not opened:
+        print(f'Error reading {filename}')
+        return
+    
+    framerate = movie.get(cv2.CAP_PROP_FPS)
+    fps = 0
+    
+    while opened:
+        ret, frame = movie.read()
+        if ret == True:
+            fps += 1
+            if fps % framerate == 0:
+                cv2.imwrite(str(Path(path)/f'{movie_name}'/f'{int(fps/framerate)}.jpg'), frame)
+        else:
+            break
+    
+    movie.release()
+
+
 class Manager:
     
     def __init__(self):
         self.csv_data = None
         pass
+    
     
     def initializeModel(self):
         
@@ -118,6 +155,7 @@ class Manager:
         
         print("Model compiled")
         
+
     def initializeModel2(self):
         
         print("Loading base model...")
