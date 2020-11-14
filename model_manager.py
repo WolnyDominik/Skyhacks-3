@@ -2,8 +2,6 @@ import tensorflow as tf
 keras = tf.keras
 layers = keras.layers
 
-from local import training_data_folder
-
 import pandas as pd
 import os
 import math
@@ -13,16 +11,25 @@ import numpy as np
 #from keras.applications.resnet50 import preprocess_input
 #from keras.preprocessing.image import ImageDataGenerator
 
-
+training_data_folder = r"."
 csv_path = os.path.join(training_data_folder, "training_labels.csv")
 csv_test_path = os.path.join(training_data_folder, "training_labels_test.csv")
 csv_train_path = os.path.join(training_data_folder, "training_labels_train.csv")
 photos_path = os.path.join(training_data_folder, "training_images")
 bin_photos_path = os.path.join(training_data_folder, "training_images.bin")
 models_path = os.path.join(training_data_folder, "models")
+live_test_path = os.path.join(training_data_folder, "live_test_images")
 
 RESOLUTION = 224
 
+
+columns = ['Name', 'Amusement park', 'Animals', 'Bench', 'Building', 'Castle',
+       'Cave', 'Church', 'City', 'Cross', 'Cultural institution', 'Food',
+       'Footpath', 'Forest', 'Furniture', 'Grass', 'Graveyard', 'Lake',
+       'Landscape', 'Mine', 'Monument', 'Motor vehicle', 'Mountains', 'Museum',
+       'Open-air museum', 'Park', 'Person', 'Plants', 'Reservoir', 'River',
+       'Road', 'Rocks', 'Snow', 'Sport', 'Sports facility', 'Stairs', 'Trees',
+       'Watercraft', 'Windows']
 
 def seperateTests(test_rate = 0.1, path = csv_path, test_path = csv_test_path, train_path = csv_train_path):
     print("Seperating tests...")
@@ -35,6 +42,58 @@ def seperateTests(test_rate = 0.1, path = csv_path, test_path = csv_test_path, t
     csv_test_data.to_csv(test_path, index=False)
     csv_train_data.to_csv(train_path, index=False)
     print("Done")
+
+  
+    
+def proccessAllImages( paths):
+    size = len(paths)
+    images = np.empty([size, RESOLUTION, RESOLUTION, 3])
+    for i in range(0, size):
+        print("  ", i, " / ", size)
+        images[i] = processImage(paths[i])
+    return images
+
+def processImage(path):
+    image = cv2.imread(path)
+    return cv2.cvtColor(cv2.resize(image, (RESOLUTION, RESOLUTION)), cv2.COLOR_BGR2RGB)
+
+def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
+    print("Processing images...")
+    if(names_list == None):
+        names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
+    end_i = names_list.size
+    if count > 0:
+        end_i = math.min(start_i + count, end_i)
+    imagesData = np.empty([end_i-start_i,RESOLUTION,RESOLUTION,3], dtype=np.uint8)
+    for i in range(start_i, end_i):
+        print("  ", i-start_i, " / ", end_i-start_i)
+        imagesData[i] = processImage( os.path.join(images_path, names_list[i]) )
+    print("SavingToBinary...")
+    imagesData.tofile(bin_path)
+    print("Done")
+
+def importImagesFromBinaryFile(path_to_file):
+    return np.fromfile(path_to_file, dtype=np.uint8).reshape([-1, RESOLUTION, RESOLUTION, 3])
+
+def convertPredictionsToCsv(predictions, files, path_to_csv):
+    print("Writing to csv...")
+    df = pd.DataFrame(data=None, index=None, columns=columns, dtype=None, copy=False)
+    size = len(predictions)
+    for i in range(size):
+        df.loc[i] = [files[i]] + predictions[i]
+    df.to_csv(path_to_csv, index=False)
+    print("Done.")
+    return df
+
+def convertPredictionsArrayToLabels(predictions):
+    res = []
+    for prediction in predictions:
+        subres = []
+        for i in range(0, prediction.size):
+            if prediction[i] == 1:
+                subres.append(columns[i+1])
+        res.append(subres)
+    return res
 
 class Manager:
     
@@ -68,23 +127,7 @@ class Manager:
         self.y_test = test.drop(columns=["Name"]).to_numpy().reshape([-1, 38]) * 1
         self.labels = test.columns[1:]
         print("Done")
-        
-    def processImage(self, path):
-        image = cv2.imread(path)
-        return cv2.cvtColor(cv2.resize(image, (RESOLUTION, RESOLUTION)), cv2.COLOR_BGR2RGB)
-    
-    def processAllImagesToBinary(self, names_list, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
-        print("Processing images...")
-        end_i = names_list.size
-        if count > 0:
-            end_i = math.min(start_i + count, end_i)
-        imagesData = np.empty([end_i-start_i,RESOLUTION,RESOLUTION,3], dtype=np.uint8)
-        for i in range(start_i, end_i):
-            print("  ", i-start_i, " / ", end_i-start_i)
-            self.imagesData[i] = self.processImage( os.path.join(images_path, names_list[i]) )
-        print("SavingToBinary...")
-        imagesData.tofile(bin_path)
-        print("Done")
+      
     
     def importTrainingDataFromBinaryFile(self, path_to_file = bin_photos_path):
         print("Importing images from binary file...")
@@ -109,8 +152,25 @@ class Manager:
         print("Loading model...")
         self.model = keras.models.load_model(os.path.join(models_path, name))
         print("Done")
-        
-        
+    
+    def getPredictionsArray(self, images_path = live_test_path, binary_path = None):
+        print("Predicting....")
+        files = [file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))]           
+        images = None
+        if binary_path != None:
+            images = importImagesFromBinaryFile(images_path)
+        else:
+            filepaths = [os.path.join(images_path, filename) for filename in files]
+            images = proccessAllImages(filepaths)
+            
+        predictions_raw = self.model.predict(images, verbose = 1)
+        predictions = [ [( 1 if prediction >= 0.5 else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
+        print("Done.")
+        return (predictions, files)
+    
+    def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = None, path_to_csv = os.path.join(training_data_folder, "result.csv")):
+        predictions, files = self.getPredictionsArray(images_path, binary_path)
+        return convertPredictionsToCsv(predictions, files, path_to_csv)
 
 """
 

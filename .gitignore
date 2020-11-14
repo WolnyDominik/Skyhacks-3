@@ -29,6 +29,7 @@ MANIFEST
 
 *.bin
 local.py
+*.csv
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -134,3 +135,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/training_images.bin.backup
