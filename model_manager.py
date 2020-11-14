@@ -77,8 +77,8 @@ def processImage(path):
 def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
     print("Processing images...")
     print(names_list)
-    if names_list == None:
-        names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
+    #if names_list == None:
+    names_list = np.array([file for file in names_list if os.path.isfile(os.path.join(images_path, file))])
     end_i = names_list.size
     if count > 0:
         end_i = math.min(start_i + count, end_i)
