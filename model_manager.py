@@ -13,9 +13,10 @@ import numpy as np
 from pathlib import Path
 import glob
 import altair as alt
+from altair_saver import save
 
 
-alt.renderers.enable('mimetype')
+alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
 
 
 #from keras.applications.resnet50 import preprocess_input
@@ -209,7 +210,7 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
         labelColor="#ffffff"
     )
     
-    chart.save('chart.html')
+    save(chart,'chart.svg')
 
 
 class Manager:
