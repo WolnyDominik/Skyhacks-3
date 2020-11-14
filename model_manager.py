@@ -13,6 +13,7 @@ import numpy as np
 from pathlib import Path
 import glob
 import altair as alt
+import random
 from altair_saver import save
 
 alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
@@ -160,6 +161,31 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
     df = pd.read_csv(csv_path)
     columns = df.columns.tolist()[1:]
     
+    comp1 = ['City', 'Forest', 'Park', 'Church']
+    comp2 = ['Building', 'Trees', 'Trees', 'Building']
+    incomp1 = ['Snow']
+    incomp2 = ['Grass']
+    
+    for c1, c2 in zip(comp1, comp2):
+        col1 = df[c1].tolist()
+        col2 = df[c2].tolist()
+        out = [1 if v1 == 1 else v2 for v1, v2 in zip(col1, col2)]
+        df[c2] = out
+
+    for c1, c2 in zip(incomp1, incomp2):
+        col1 = df[c1].tolist()
+        col2 = df[c2].tolist()
+        if sum(col1) != sum(col2):
+            if sum(col1) > sum(col2):
+                df[c2] = 0
+            else:
+                df[c2] = 0
+        else:
+            if random.random() < 0.5:
+                df[c2] = 0
+            else:
+                df[c2] = 0
+
     stats = {col: 0 for col in columns}
     conts = {col: 0 for col in columns}
     tresh = {col: treshold for col in columns}
@@ -168,7 +194,7 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
     times = [float(name[:name.rfind('.')])*jump for name in names]
     df['time'] = times
     df = df.sort_values(by='time', ascending=True)
-    
+
     started = {}
     ended = []
     
