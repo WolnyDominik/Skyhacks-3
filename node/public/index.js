@@ -28,6 +28,67 @@ function createComponent(id, classname = "", innerHTML = "")
     component.setAttribute("id", id);
     component.innerHTML = innerHTML;
     document.getElementById("components_container").appendChild(component);
+    const component_ = new Component(component);
+    component_.element.setAttribute("component_index", componentsList.length);
+    componentsList.push( component_ );
+    return component_;
+}
+
+class Component
+{
+    constructor(element)
+    {
+        this.element = element;
+    }
+}
+
+const componentsList = [];
+
+
+function refreshStatus(component)
+{
+    console.log("refreshing");
+    fetch('/status/' + component.id, 
+    {
+        method: "GET"
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){ 
+        
+        document.getElementById(component.id + "_progress_counter").innerHTML = data.status;
+        if(data.finished)
+        {
+            console.log("FINISHED", component.id);
+            setProcessingResult(component);
+        }
+        else
+        {
+            setTimeout(()=>refreshStatus(component), component.refreshInterval);
+        }
+        
+     })
+    .catch(function(err){ console.log(err); });
+}
+
+function setProcessingResult(component)
+{
+    console.log("fetching result");
+    fetch('/result/' + component.id,
+    {
+        method: "GET"
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){ 
+        
+        if(!data.hasResult){
+            document.getElementById(component.id + "_result").innerHTML = "Result: None";
+            return;
+        }
+        document.getElementById(component.id + "_result").innerHTML = data.result;
+        
+        
+     })
+    .catch(function(err){ console.log(err); });
 }
 
 function createProcessingComponent(id, type, file)
@@ -35,20 +96,23 @@ function createProcessingComponent(id, type, file)
     const template=`
         <header>Processing ${type} file: <span class="filename">${file.name}</span></header>
         <section class="status"> 
-            <section> Progress: <span id="${id}_progress_counter" >0<span>% </section>
+            <section> Progress: <span id="${id}_progress_counter" >0%<span> </section>
         </section>
-        <section class="result">
-            <img src="" style="display:none">
+        <section class="result" id="${id}_result">
         </section>
     `;
-    createComponent(id, "processing", template);
+    component = createComponent(id, "processing", template);
+    component.id = id;
+    component.filename = file.name;
+    component.refreshInterval = 200;
+    refreshStatus(component);
 }
 
 
 function uploadFileForAnalisys(input, type)
 {
     console.log("Sending " + type);
-        
+    
     var data = new FormData();
     data.append('file', input.files[0]);
     
