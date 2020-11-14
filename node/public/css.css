@@ -1,0 +1,59 @@
+body {
+    background-color: lightblue;
+    font-family: Century Gothic
+}
+
+body * {
+    box-sizing: border-box;
+    margin: 0px;
+    transition: 0.5s;
+}
+
+body > header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+body > main {
+    display: flex;
+    flex-direction: column;
+}
+body > main > *{
+    width: 100%;
+}
+
+#upload_section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.upload_button{
+    width: 30%;
+    padding: 20px;
+    text-align: center;
+    background-color: rgb(73, 183, 219);
+    border: 1px solid white;
+    cursor: pointer;
+    font-size: 2em;
+    color: white;
+}
+.upload_button:hover{
+    width: 50%;
+    background-color: rgb(111, 206, 238);
+}
+
+.component{
+    width: 100%;
+    border-top: 2px white dashed;
+    margin-top: 10px;
+}
+
+.processing > header{
+    font-size: 1.5em;
+}
+.processing .filename{
+    font-weight: bold;
+    color: white;
+}
+

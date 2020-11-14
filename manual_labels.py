@@ -72,4 +72,4 @@ for filename in files:
         cv2.destroyAllWindows()
         break
 
-df.to_csv(str(skip)+'manual_live_test_output.csv', index=False)
+df.to_csv(str(skip)+'-'+str(skip+i-1)+'manual_live_test_output.csv', index=False)
