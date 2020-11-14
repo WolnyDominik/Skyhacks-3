@@ -3,7 +3,7 @@ const multer = require("multer");
 const upload = multer({ dest: 'data/uploads/' });
 const fs = require("fs")
 
-const exec = require("child_process");
+const child_process = require("child_process");
 
 var path = require('path');
 const app = express();
@@ -42,8 +42,12 @@ class ProcessingRequest
     }
     
     getResult()
-    {
-        return "<h2>RESULT: " + this.id + " FROM FILE " + this.filepath+"</h2>";
+    {        
+        const resultPath = path.join(path.dirname(this.filepath), "film.html");
+        const data = fs.readFileSync(resultPath, {encoding: "utf-8"});
+        const extracted_start = data.indexOf("<body>");
+        const extracted_end = data.indexOf("</body>");
+        return data.slice(extracted_start+"<body>".length, extracted_end);
     }
 }
 
@@ -95,8 +99,35 @@ function releaseRequest(id)
 
 function delegateForAnalysis(request) // TODO
 {
+    
     return new Promise((resolve, reject)=>{
-        setTimeout(()=>resolve(), 3000);
+        
+        if(request.isVideo)
+        {
+            console.log("Start");
+            child_process.exec(`python ../film.py ${request.filepath}`, (error, stdout, stderr) => {
+            
+                console.log("Lol");
+                
+                if (error) {
+                    console.error(`exec error: ${error}`);
+                    reject();
+                }
+                else
+                {
+                    console.log(`stdout: ${stdout}`);
+                    console.error(`stderr: ${stderr}`);
+                    resolve();
+                }
+            });
+        }
+        else
+        {
+            // TODO
+            reject();
+        }
+        
+        
     });
 }
 
