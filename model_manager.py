@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 import glob
+import altair as alt
 from altair_saver import save
 
 alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
