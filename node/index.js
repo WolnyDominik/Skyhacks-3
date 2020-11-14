@@ -25,9 +25,78 @@ function generateNewId()
 }
 function releaseId(id)
 {
-    delete usedIds[id]
+    delete usedIds[id];
 }
 
+class ProcessingRequest
+{
+    constructor(id, filepath, isVideo){
+        this.id = id;
+        this.filepath = filepath;
+        this.isVideo = isVideo;
+        
+        // 0=Awaiting, 1=Processing, 2=Done, 3=Failed
+        this.status = 0;
+    }
+    
+    getResult()
+    {
+        return "<h2>RESULT: " + this.id + " FROM FILE " + this.filepath+"</h2>";
+    }
+}
+
+const processingQueue = [];
+const processingLookup = {};
+function enqueueRequest(id, filepath)
+{
+    const request = new ProcessingRequest(id, filepath);
+    processingQueue.push(id);
+    processingLookup[id] = request;
+}
+function getStatus(id)
+{
+    return (processingLookup[id] || {status: -1}).status;
+}
+let isProcessing = false;
+function processNextRequest()
+{
+    if(isProcessing || processingQueue.length <= 0)
+        return;
+    isProcessing = true;
+    const request = processingLookup[processingQueue[0]];
+    if(!request){
+        processingQueue.shift();
+        processNextRequest();
+        return;
+    }
+    request.status = 1;
+    delegateForAnalysis(request).then(()=>{
+        processingQueue.shift();
+        isProcessing = false;
+        request.status = 2; // Completed
+        processNextRequest();
+    }).catch(err => {
+        console.log(err);
+        processingQueue.shift();
+        isProcessing = false;
+        request.status = 3; // Failed
+        processNextRequest();
+    });
+}
+
+function releaseRequest(id)
+{
+    processingLookup[id].delete();
+    delete processingLookup[id];
+    releaseId(id);
+}
+
+function delegateForAnalysis(request) // TODO
+{
+    return new Promise((resolve, reject)=>{
+        setTimeout(()=>resolve(), 3000);
+    });
+}
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/public/index.html", err => {
@@ -60,7 +129,9 @@ function createDirectoryAndCopyFile(file, id)
         fs.mkdirSync(dir2);
     }
     
-    fs.renameSync(file.path, path.join(dir2, file.filename + '.' + file.originalname));
+    const filepath = path.join(dir2, file.filename + '.' + file.originalname);
+    fs.renameSync(file.path, filepath);
+    return filepath;
 }
 
 app.post('/upload/video', upload.any(), (req, res) => {
@@ -76,11 +147,13 @@ app.post('/upload/video', upload.any(), (req, res) => {
     console.log("ReceivedFile: ", file);
     
     const id = generateNewId();
-    createDirectoryAndCopyFile(file, id);
+    const filepath = createDirectoryAndCopyFile(file, id);
+    
+    enqueueRequest(id, filepath, true);
+    processNextRequest();
     
     res.json({id: id});
     
-    // TODO start processing
     
 })
 
@@ -97,32 +170,51 @@ app.post('/upload/audio', upload.any(), (req, res) => {
     console.log("ReceivedFile: ", file);
     
     const id = generateNewId();
-    createDirectoryAndCopyFile(file, id);
+    const filepath = createDirectoryAndCopyFile(file, id);
+    
+    enqueueRequest(id, filepath, false);
+    processNextRequest();
     
     res.json({id: id});
     
-    // TODO start processing
-    
-})
+});
 
 
-app.get('/status/{id}', (req, res) => {
+app.get('/status/:id', (req, res) => {
     
-    // TODO calculate status
+    const statuses = ["Awaiting Analysis", "Processing", "Done", "Failed"];
+    const id = req.params.id;
+    const request = processingLookup[id];
+    const status = request ? statuses[request.status] : "None";
     
-    let status = {};
-    status.progress = 0.1;
-    status.done = false;
+    let data = {
+        status: status,
+        finished: request.status >= 2
+    };
     
     res.json(data);
 });
 
-app.get('/result/{id}', (req, res) => {
+app.get('/result/:id', (req, res) => {
     
-    // TODO create result
+    const id = req.params.id;
+    const request = processingLookup[id];
     
-    let result = {}
+    if(!request || request.status != 2)
+    {
+        let result = {
+            hasResult: false
+        };
+        
+        res.json(result);
+        return;
+    }
     
+    let result = {
+        hasResult: true,
+        result: request.getResult()
+    };
+   
     res.json(result);
 })
 
