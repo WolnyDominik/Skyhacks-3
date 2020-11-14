@@ -30,6 +30,7 @@ function createComponent(id, classname = "", innerHTML = "")
     document.getElementById("components_container").appendChild(component);
     const component_ = new Component(component);
     component_.element.setAttribute("component_index", componentsList.length);
+    setTimeout(()=>component_.element.style.opacity = "1", 100);
     componentsList.push( component_ );
     return component_;
 }
