@@ -13,42 +13,47 @@ columnsLabel = ['Name','Amusement park', 'Animals', 'Bench', 'Building', 'Castle
        'Open-air museum', 'Park', 'Person', 'Plants', 'Reservoir', 'River',
        'Road', 'Rocks', 'Snow', 'Sport', 'Sports facility', 'Stairs', 'Trees',
        'Watercraft', 'Windows']
-columns2 = ['park rozrywki', 'zwierzęta', 'ławka', 'budynek', 'zamek',
-       'jaskinia', 'kościół', 'miasto', 'krzyż', 'instytucja kultury', 'jedzenie',
-       'Ścieżka', 'Las', 'Meble', 'Trawa', 'Cmentarz', 'Jezioro',
-       'krajobraz', 'kopalnia', 'Pomnik', 'Pojazd mechaniczny', 'Góry', 'Muzeum',
-       'Skansen', 'Park', 'Człowiek', 'Rośliny', 'Zbiornik', 'Rzeka',
-       'Droga', 'Skały', 'Śnieg', 'Sport', 'Obiekt sportowy', 'Schody', 'Drzewa',
-       'Statek', 'Okna']
-columns = [['lunapark','wesołe miasteczko', "park rozrywki"],
-        ['ryb','wąż','sarna','ptaki','pies','kot', 'przyro', "natur"],
-        ['siedzi','ławka','zydel'],
-        ["apartamentowiec", "biurowiec", "bliźniak", "blok", "blokhauz", "bungalow", "ceglak", "czynszówka", "dacza", "dom", "domek", "domostwo", "drapacz chmur", "dworzyszcze", "gmach", "kamienica", "murowaniec", "nieruchomość", "piętrowiec", "segment", "szeregowiec", "wieżowiec", "apartament", "budowla", "chata", "mieszkanie", "pałac", "rezydencja", "willa", "zamek", "bloczysko"],
+columns = [["park rozrywki", 'lunapark','wesołe miasteczko'],
+        ['zwierzęta', 'ryb','wąż','sarna','ptaki','pies','kot', 'przyro', "natur"],
+        ['ławka', 'siedzi','ławka','zydel'],
+        ['budynek',"apartamentowiec", "biurowiec", "bliźniak", "blok", "blokhauz", "bungalow", "ceglak", "czynszówka", "dacza", "dom", "domek", "domostwo", "drapacz chmur", "dworzyszcze", "gmach", "kamienica", "murowaniec", "nieruchomość", "piętrowiec", "segment", "szeregowiec", "wieżowiec", "apartament", "budowla", "chata", "mieszkanie", "pałac", "rezydencja", "willa", "zamek", "bloczysko"],
         ['zamek', 'dworek', 'cytadela', 'baszta', 'flanki', 'mur', 'blanki', 'łucznicy'],
-        ["czeluść", "głębia", "grota", "jama", "jamka", "lej", "leże", "loch", "nora", "norka", "otwór", "pieczara", "rozpadlina", "szczelina", "wgłębienie", "wgłębienie skalne", "wykrot", "wyrwa", "zagłębienie", "załamanie"],
-        ["archikatedra", "bazylika", "modlitwy", "pański",  "boży", "wiara", "świątynia", "chrześcijanie", "wierni", "wspólnota"],
-        ["aglomeracja", "betonowa dżungla", "metropolia", "miasteczko", "miejscowość", "mieścina", "osada", "osiedle", "wioska", "cywilizacja", "konurbacja", "urbanizacja", "katowice", "częstochowa", "sosnowiec", "gliwice"],
+        ['jaskinia', "czeluść", "głębia", "grota", "jama", "jamka", "lej", "leże", "loch", "nora", "norka", "otwór", "pieczara", "rozpadlina", "szczelina", "wgłębienie", "wgłębienie skalne", "wykrot", "wyrwa", "zagłębienie", "załamanie"],
+        ['kościół', "archikatedra", "bazylika", "modlitwy", "pański",  "boży", "wiara", "świątynia", "chrześcijanie", "wierni", "wspólnota"],
+        ['miasto',"aglomeracja", "betonowa dżungla", "metropolia", "miasteczko", "miejscowość", "mieścina", "osada", "osiedle", "wioska", "cywilizacja", "konurbacja", "urbanizacja", "katowice", "częstochowa", "sosnowiec", "gliwice"],
         ["krzyż"],
-        ["kino", "muzeum", "biblioteka", "opera", "operetka", "filharmonia", "teatr", "orkiestra", "kultury", "artystyczne", "galeria", "sztuki"],
+        ['instytucja kultury', "kino", "muzeum", "biblioteka", "opera", "operetka", "filharmonia", "teatr", "orkiestra", "kultury", "artystyczne", "galeria", "sztuki"],
         ["jedzenie", "zjeść", "pożywienie"],
         ["ścieżka", "chodnik", "deptak", "szlak"],
-        ["bór", "las","dżungla", 'przyro', "gaj","knieja","laseczek","lasek","łęg","młodnik","puszcza","regiel","selwa","tajga","zagaj","zagajnik","zalesienie"],
-        ["mebelki", "sprzęty", "umeblowanie", "wyposażenie", "wystrój", "zabudowa", "stół", "krzeslo", "łóżk", "szafk"],
+        ["las", "bór", "dżungla", 'przyro', "gaj","knieja","laseczek","lasek","łęg","młodnik","puszcza","regiel","selwa","tajga","zagaj","zagajnik","zalesienie"],
+        ["meble", "sprzęty", "umeblowanie", "wyposażenie", "wystrój", "zabudowa", "stół", "krzeslo", "łóżk", "szafk"],
         ['trawa', "kwietnik","murawa","trawnik","darnina", "natur", 'przyro', "sielsk", 'przyrod',],
-        ["grób", "groby", "cmentarz", "polegl"],
-        ["woda", "akwen", "bagno", "bajoro", "glinianka", "jeziorko", "mulisko", "oczko wodne", "sadzawka", "staw", "zarośnięte jezioro", "zarośnięty staw", "obszar wodny", "zalew", "zalewisko", "zbiornik wody", "jeziorzysko", "szot", "szott"],
-        ["obraz", "panorama", "scena", "widok", "wizja", "okolica", "pejzaż", "perspektywa", "sceneria", "plener", "widoczek", "otwarta przestrzeń", "przestrzeń", "środowisko", "pejzażyk"],
-        [ "kwk", "wegięl", "kamienny", "wieliczka", "źródło", "hawiernia", "sztolnia", "zakład górniczy"],
-        ["cenotaf", "dolmen", "figura", "kamień nagrobny", "monument", "nagrobek", "obelisk", "pamiątka", "pomniczek", "posąg", "rzeźba", "statua", "bałwan", "figurka", "figurynka", "monolit", "popiersie", "statuetka", "totem", "epitafium", "inskrypcja nagrobna"],
-        ["auto", "automobil", "bryczka", "bryka", "czterokołowiec", "dwuślad", "dwuśladowiec", "fura", "gablota", "limuzyna", "maszyna", "osobówka", "pojazd", "samochodzik", "samochód", "środek transportu", "wóz", "wózek", "środek lokomocji", "motor"],
-        ["czub", "czubek", "góra", "górotwór", "grań", "grzbiet", "kalenica", "koniec góry", "masyw", "masyw górski", "pagórek", "pasmo", "szczyt", "szpic", "turnia", "wierch", "wierzchołek", "wzgórze", "wzniesienie"],
-        ["galeria", "kolekcja", "kolekcja dzieł", "pinakoteka", "salon wystawowy", "wernisaż", "wystawa", "zbiór", "zbiór dzieł sztuki", "gliptoteka", "panoptikum", "park etnograficzny"],
-        ["anachronizm", "archaizm", "przeżytek", "relikt", "relikt przeszłości", "skansen", "staroć", "staroświecczyzna", "zabytek"],
-
+        ["cmentarz", "grób", "groby",  "polegl"],
+        ['jezioro',"woda", "akwen", "bagno", "bajoro", "glinianka", "jeziorko", "mulisko", "oczko wodne", "sadzawka", "staw", "zarośnięte jezioro", "zarośnięty staw", "obszar wodny", "zalew", "zalewisko", "zbiornik wody", "jeziorzysko", "szot", "szott"],
+        ["krajobraz","obraz", "panorama", "scena", "widok", "wizja", "okolica", "pejzaż", "perspektywa", "sceneria", "plener", "widoczek", "otwarta przestrzeń", "przestrzeń", "środowisko", "pejzażyk"],
+        ['kopalnia' "kwk", "wegięl", "kamienny", "wieliczka", "źródło", "hawiernia", "sztolnia", "zakład górniczy"],
+        ['pomnik',"cenotaf", "dolmen", "figura", "kamień nagrobny", "monument", "nagrobek", "obelisk", "pamiątka", "pomniczek", "posąg", "rzeźba", "statua", "bałwan", "figurka", "figurynka", "monolit", "popiersie", "statuetka", "totem", "epitafium", "inskrypcja nagrobna"],
+        ['Pojazd mechaniczny', "auto", "automobil", "bryczka", "bryka", "czterokołowiec", "dwuślad", "dwuśladowiec", "fura", "gablota", "limuzyna", "maszyna", "osobówka", "pojazd", "samochodzik", "samochód", "środek transportu", "wóz", "wózek", "środek lokomocji", "motor"],
+        ['góry', "czub", "czubek", "góra", "górotwór", "grań", "grzbiet", "kalenica", "koniec góry", "masyw", "masyw górski", "pagórek", "pasmo", "szczyt", "szpic", "turnia", "wierch", "wierzchołek", "wzgórze", "wzniesienie"],
+        ['muzeum', "galeria", "kolekcja", "kolekcja dzieł", "pinakoteka", "salon wystawowy", "wernisaż", "wystawa", "zbiór", "zbiór dzieł sztuki", "gliptoteka", "panoptikum", "park etnograficzny"],
+        ['skansen', "anachronizm", "archaizm", "przeżytek", "relikt", "relikt przeszłości", "skansen", "staroć", "staroświecczyzna", "zabytek"],
+        ['park', "ogród spacerowy", "parczek", "rezerwat", "botanik", "kwiaty", "krzew", "drzew", "raj", "ogród", "skwer", "zieleniec"],
+        ["człowiek" , "gość", "osobnik"],
+        ["rośliny", "głąb", "kaczan", "kłącze", "kolba", "łodyga", "pęd", "szypułka", "kolorowe piękno natury", "kwiatek"],
+        ['zbiornik', "akwen", "jezioro", "obszar wodny", "zalew", "zalewisko"],
+        ["ciek", "dopływ", "pływ", "potok", "ruczaj", "rzeczka", "rzeczułka", "rzeka", "struga", "strumień", "strumyk"],
+        ["droga", "arteria", "arteria komunikacyjna", "autostrada", "ciąg komunikacyjny", "droga", "droga ekspresowa", "gościniec", "jezdnia", "magistrala", "obwodnica", "przejazd", "szeroka ulica", "szlak", "szlak komunikacyjny", "szosa", "ścieżka", "tor", "trakt", "trasa", "ulica"],
+        ["skały", "blok skalny", "bryła skalna", "eratyk", "głaz", "kamienisko", "kamień", "kamuszek", "kamyczek", "kamyk", "minerał", "narzutniak", "narzutowiec", "odłamek", "odłupek", "otoczak", "opoka", "skaliste podłoże", "granit", "marmur", "ostaniec"],
+        ['śnieg', "amfa", "amfetamina", "białe", "posyp", "biała dama", "biała śmierć", "biały proszek", "koka", "kokaina", "koks", "opady śniegu", "pokrywa śnieżna", "śnieżyca", "zamieć", "zawieja", "biała pokrywa", "biały całun", "biały puch", "całun zimy", "puch"],
+        ['sport', "aktywność fizyczna", "ćwiczenia", "ćwiczenie", "gimnastyka", "poruszanie się", "praca fizyczna", "ruch", "trening", "wysiłek", "zaprawa", "ćwiczenia gimnastyczne", "teoria i praktyka aktywności fizycznej", "wychowanie fizyczne", "rywalizacja", "współzawodnictwo"],
+        ['obiekt sportowy', "boisko", "pole do gry", "stadion"],
+        ['schody', "klatka schodowa", "schodki", "schodnia", "stopnie", "przeciwności", "trudności", "utrudnienia", "schodek", "poziomy", "szczeble"],
+        ['drzewa', "dąb", "buk","brzoz", "jabło", "jarząb","jesi", "olsz", "topol", "klon", "lipa", "wierzba"],
+        ['statek', "jacht", "kajak", "żaglówka", "wodny"], 
+        ['okna', "bulaj", "dymnik", "gibel", "iluminator", "lufcik", "lukarna", "otwór", "szyba", "świetlik", "witraż", "gablota", "witryna", "wystawa", "okienn", "okieneczko", "okienko"]
         ]
 toSource = []
 def transcribe_file(speech_file):
-    """Transcribe the given audio file."""
     from google.cloud import speech
 
     client = speech.SpeechClient()
@@ -70,7 +75,7 @@ def transcribe_file(speech_file):
 
     for result in response.results:
             alternative = result.alternatives[0]
-          #  print("Transcript: {}".format(alternative.transcript))
+            print("Transcript: {}".format(alternative.transcript))
           #  print("Confidence: {}".format(alternative.confidence))
 
             for word_info in alternative.words:
@@ -101,17 +106,6 @@ for key, j in enumerate(outputs):
                 pass
             
 
-#datag = pd.DataFrame({
-#    'a': list ("CCCDDDDEEEE"),
-#    'b': [2,7,4,1,2,6,7,5,1,2,3]
-#})
-#chart = alt.Chart(datag).mark_bar().encode(
-#    x='a',
-#    y='average(b)',
-#)
-#
-# 
-# chart.save('chart.html')
 
 source = pd.DataFrame(toSource)
 
