@@ -12,6 +12,10 @@ import cv2
 import numpy as np
 from pathlib import Path
 import glob
+import altair as alt
+
+
+alt.renderers.enable('mimetype')
 
 
 #from keras.applications.resnet50 import preprocess_input
@@ -124,20 +128,25 @@ def film_to_frames(filename: str, path=film_data_folder, step:float=1):
         print(f'Error reading {filename}')
         return
     
-    framerate = math.floor(movie.get(cv2.CAP_PROP_FPS)*step)
+    framerate = movie.get(cv2.CAP_PROP_FPS)
+    framestep = math.floor(framerate*step)
+    cap = framerate * 30
     fps = 0
     target_folder = os.path.join(path, movie_name)
 
     os.makedirs(target_folder, exist_ok=True)
     files = glob.glob(target_folder+'/*')
+    
     for f in files:
         os.remove(f)
 
     while opened:
+        if fps > cap:
+            break
         ret, frame = movie.read()
         if ret == True:
-            if fps % framerate == 0:
-                cv2.imwrite(target_folder+f'/{int(fps/framerate)}.jpg', frame)
+            if fps % framestep == 0:
+                cv2.imwrite(target_folder+f'/{int(fps/framestep)}.jpg', frame)
             fps += 1
         else:
             break
@@ -149,16 +158,26 @@ def film_to_frames(filename: str, path=film_data_folder, step:float=1):
 def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1, treshold: int=0):
     df = pd.read_csv(csv_path)
     columns = df.columns.tolist()[1:]
+    
     stats = {col: 0 for col in columns}
     conts = {col: 0 for col in columns}
     tresh = {col: treshold for col in columns}
     names = df['Name'].tolist()
+    
     times = [float(name[:name.rfind('.')])*jump for name in names]
     df['time'] = times
     df = df.sort_values(by='time', ascending=True)
+    
+    started = {}
+    ended = []
+    
     for _, row in df.iterrows():
         for col in columns:
             if row[col] and not conts[col]:
+                started[col] = {
+                    'class': col,
+                    'xp': row['time']
+                }
                 stats[col] += 1
                 conts[col] =  1
                 tresh[col] =  treshold
@@ -168,13 +187,25 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
 
             elif not row[col] and not tresh[col]:
                 conts[col] = 0
+                started[col]['xk'] = prev_row['time']
+                ended.append(started[col])
+        
+        prev_row = row
 
-    print()
+    cats = []
+    vals = []
     for key, item in stats.items():
-        print(key, item)
-    print()
+        cats.append(key)
+        vals.append(item)
 
-    df.to_csv('xd.csv', index=None)
+    df_dict = {
+        'Categories': cats,
+        'Occurrence': vals
+    }
+
+    stats_df = pd.DataFrame(df_dict)
+    
+    return ended
 
 
 class Manager:
