@@ -133,7 +133,7 @@ def film_to_frames(filename: str, path=film_data_folder, step:float=1):
     framestep = math.floor(framerate*step)
     cap = framerate * 30
     fps = 0
-    target_folder = os.path.join(path, movie_name)
+    target_folder = os.path.join(path, 'czesto')
 
     os.makedirs(target_folder, exist_ok=True)
     files = glob.glob(target_folder+'/*')
