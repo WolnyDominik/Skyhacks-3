@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 keras = tf.keras
 layers = keras.layers
 
@@ -19,6 +20,7 @@ photos_path = os.path.join(training_data_folder, "training_images")
 bin_photos_path = os.path.join(training_data_folder, "training_images.bin")
 models_path = os.path.join(training_data_folder, "models")
 live_test_path = os.path.join(training_data_folder, "live_test_images")
+live_test_bin_path = os.path.join(training_data_folder, "live_test.bin")
 
 RESOLUTION = 224
 
@@ -115,6 +117,25 @@ class Manager:
         self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[keras.metrics.BinaryAccuracy()])
         
         print("Model compiled")
+        
+    def initializeModel2(self):
+        
+        print("Loading base model...")
+        self.base_model = keras.applications.ResNet50(include_top=False, pooling='avg', input_shape=(RESOLUTION, RESOLUTION, 3))
+        self.base_model.trainable = False
+        print("Creating model...")
+        
+        self.model = keras.Sequential()
+        self.model.add(self.base_model)
+        self.model.add(layers.Dense(38, activation='sigmoid'))
+        
+        #optimizer = tfa.optimizers.RectifiedAdam()
+        optimizer = keras.optimizers.Adam(learning_rate=0.00004)
+        loss = keras.losses.BinaryCrossentropy(from_logits=True)
+        metrics=[keras.metrics.BinaryAccuracy()]
+        self.model.compile(optimizer=optimizer, loss=loss, metrics = metrics)
+        
+        print("Model compiled")
     
     def loadCsv(self, train_path = csv_train_path, test_path = csv_test_path):
         print("Loading csv...")
@@ -136,39 +157,71 @@ class Manager:
         self.x_train = self.x_train[(self.names_test.size):]
         print("Done")
     
-    def train(self, epochs):
-        print("Training...")
-        self.model.fit(self.x_train, self.y_train, verbose = 1, epochs = epochs)
-        print("Done")
-    def test(self):
-        print("Testing...")
-        self.model.evaluate(self.x_test, self.y_test)
-        print("Done")
-    def saveModel(self, name):
+    def trainSmart(self, name, maxepochs=50, epoch_step = 1, max_last_improved = 10):
+        last = self.test(verbose = 0)
+        last_improved = 0
+        for i in range (maxepochs):
+            print("  ", i, " / ", maxepochs, "  (last improved: ", last_improved, ") ...")
+            self.train(epoch_step, verbose = 0)
+            test = self.test(verbose = 0)
+            if test[0] < last[0]:
+                if test[1] >= last[1]:
+                    print("New best: ", test, last)
+                    last = test
+                    self.saveModel(os.path.join(name, "best.h5"), overwrite=True)
+                else:
+                    print("New loss: ", test, last)
+                    last[0] = test[0]
+                    self.saveModel(os.path.join(name, "best-loss.h5"), overwrite=True)
+                last_improved = 0
+            elif test[1] > last[1]:
+                print("New acc:  ", test, last)
+                last[1] = test[1]
+                self.saveModel(os.path.join(name, "best-acc.h5"), overwrite=True)
+                last_improved = 0
+            else:
+                last_improved += 1
+            if last_improved >= max_last_improved:
+                last_improved = 0
+                self.loadModel(os.path.join(name, "best.h5"))
+    
+    def train(self, epochs, verbose = 1):
+        if verbose > 0:
+            print("Training...")
+        return self.model.fit(self.x_train, self.y_train, verbose = verbose, epochs = epochs)
+        if verbose > 0:
+            print("Done...")
+    def test(self, verbose = 1):
+        if verbose > 0:
+            print("Testing...")
+        return self.model.evaluate(self.x_test, self.y_test, verbose = verbose)
+        if verbose > 0:
+            print("Done...")
+    def saveModel(self, name, overwrite = False):
         print("Saving model...")
-        self.model.save(os.path.join(models_path, name))
+        self.model.save(os.path.join(models_path, name), overwrite=overwrite)
         print("Done")
     def loadModel(self, name):
         print("Loading model...")
         self.model = keras.models.load_model(os.path.join(models_path, name))
         print("Done")
     
-    def getPredictionsArray(self, images_path = live_test_path, binary_path = None):
+    def getPredictionsArray(self, images_path = live_test_path, binary_path = None, treshold = 0.5):
         print("Predicting....")
         files = [file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))]           
         images = None
         if binary_path != None:
-            images = importImagesFromBinaryFile(images_path)
+            images = importImagesFromBinaryFile(binary_path)
         else:
             filepaths = [os.path.join(images_path, filename) for filename in files]
             images = proccessAllImages(filepaths)
             
         predictions_raw = self.model.predict(images, verbose = 1)
-        predictions = [ [( 1 if prediction >= 0.5 else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
+        predictions = [ [( 1 if prediction >= treshold else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
         print("Done.")
         return (predictions, files)
     
-    def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = None, path_to_csv = os.path.join(training_data_folder, "result.csv")):
+    def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = None, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
         predictions, files = self.getPredictionsArray(images_path, binary_path)
         return convertPredictionsToCsv(predictions, files, path_to_csv)
 
