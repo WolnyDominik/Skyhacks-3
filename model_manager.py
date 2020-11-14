@@ -12,11 +12,10 @@ import cv2
 import numpy as np
 from pathlib import Path
 import glob
-import altair as alt
 from altair_saver import save
 
-
 alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
+#alt.renderers.enable('mimetype')
 
 
 #from keras.applications.resnet50 import preprocess_input
@@ -100,7 +99,7 @@ def convertPredictionsToCsv(predictions, files, path_to_csv):
     df = pd.DataFrame(data=None, index=None, columns=columns, dtype=None, copy=False)
     size = len(predictions)
     for i in range(size):
-        df.loc[i] = [files[i]] + predictions[i]
+        df.loc[i] = [files[i]] + [int(x) for x in predictions[i]]
     df.to_csv(path_to_csv, index=False)
     print("Done.")
     return df
@@ -235,6 +234,27 @@ class Manager:
         
         print("Model compiled")
     
+    def initializeMultiModel(self):
+        
+        print("Loading base model...")
+        self.base_model = keras.applications.ResNet50(include_top=False, pooling='avg', input_shape=(RESOLUTION, RESOLUTION, 3))
+        self.base_model.trainable = False
+        print("Creating models...")
+        
+        self.multimodel = [None] * 38;
+        
+        for i in range(len(self.multimodel)):
+            
+            print("Creating model nr ", i)
+            
+            self.multimodel[i] = keras.Sequential()
+            self.multimodel[i].add(self.base_model)
+            self.multimodel[i].add(layers.Dense(2, activation='softmax'))
+            
+            self.multimodel[i].compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=["acc"])
+        
+        print("Models compiled")
+    
     
     def initializeEnsamble(self, count):
         print("Loading base model...")
@@ -327,6 +347,15 @@ class Manager:
         return self.model.fit(self.x_train, self.y_train, verbose = verbose, epochs = epochs)
         if verbose > 0:
             print("Done.")
+            
+            
+    def trainMultimodel(self, epochs, verbose = 1):
+        if verbose > 0:
+            print("Training...")
+        for i in range(38):
+            self.multimodel[i].fit(self.x_train, self.y_train[:,i], verbose = verbose, epochs = epochs)
+        if verbose > 0:
+            print("Done.")
     
     
     def trainEnsamble(self, epochs, verbose = 1):
@@ -345,6 +374,18 @@ class Manager:
             print("Testing...")
         return self.model.evaluate(self.x_test, self.y_test, verbose = verbose)
         if verbose > 0:
+            print("Done.")
+            
+    
+    def testMultimodel(self, verbose = 1):
+        if verbose > 0:
+            print("Testing...")
+        results = [None] * 38
+        for i in range(38):
+          results[i] = self.multimodel[i].evaluate(self.x_test, self.y_test[:,i], verbose = verbose)
+        if verbose > 0:
+            for i in range(38):
+                print(columns[i+1], ": ", results[i])
             print("Done.")
     
     
@@ -387,6 +428,22 @@ class Manager:
             self.ensamble[i] = keras.models.load_model(os.path.join(models_path, name + str(i) +'.h5'))
         print("Done")
     
+    def saveMultimodel(self, name, overwrite = False):
+        print("Saving multimodel...")
+        for i in range(38):
+            print("Saving multimodel ", i, " / 38")
+            self.multimodel[i].save(os.path.join(models_path, name + str(i) +'.h5'), overwrite=overwrite)
+        print("Done")
+    
+    
+    def loadMultimodel(self, name):
+        print("Loading multimodel...")
+        self.multimodel = [None] * 38
+        for i in range(38):
+            print("Loading model nr ", i)
+            self.multimodel[i] = keras.models.load_model(os.path.join(models_path, name + str(i) +'.h5'))
+        print("Done")
+    
     
     def getEnsamblePredictionsFromData(self, data, treshold = 0.5, verbose = 1):
         results = np.zeros(shape=[data.shape[0], 38])
@@ -412,6 +469,26 @@ class Manager:
             
         predictions_raw = self.model.predict(images, verbose = 1)
         predictions = [ [( 1 if prediction >= treshold else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
+        print("Done.")
+        return (predictions, files)
+    
+    def getMultimodelPredictionsArray(self, images_path = live_test_path, binary_path = None):
+        print("Predicting....")
+        files = [file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))]           
+        images = None
+        if binary_path != None:
+            images = importImagesFromBinaryFile(binary_path)
+        else:
+            filepaths = [os.path.join(images_path, filename) for filename in files]
+            images = proccessAllImages(filepaths)
+        
+        size = images.shape[0]
+        predictions = np.empty(shape = [size, 38])
+        for i in range(38):
+            print("Predicting model nr ", i)
+            prediction_row = self.multimodel[i].predict(images, verbose = 1)
+            predictions[:, i] = [int(pred[1]>pred[0]) for pred in prediction_row]
+        
         print("Done.")
         return (predictions, files)
     
@@ -442,6 +519,10 @@ class Manager:
         predictions, files = self.getEnsamblePredictionsArray(images_path, binary_path, treshold)
         return convertPredictionsToCsv(predictions, files, path_to_csv)
 
+    
+    def predictMultimodelAndSaveToCsv(self, images_path = live_test_path, binary_path = live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "result.csv")):
+        predictions, files = self.getMultimodelPredictionsArray(images_path, binary_path)
+        return convertPredictionsToCsv(predictions, files, path_to_csv)
 """
 
 cb_early_stopper = EarlyStopping(monitor='val_loss', patience=EARLY_STOP_PATIENCE)
