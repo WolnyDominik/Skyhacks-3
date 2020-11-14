@@ -1,5 +1,7 @@
+from os import name
 import tensorflow as tf
-import tensorflow_addons as tfa
+from tensorflow.python.keras.backend import print_tensor
+# import tensorflow_addons as tfa
 keras = tf.keras
 layers = keras.layers
 
@@ -8,11 +10,15 @@ import os
 import math
 import cv2
 import numpy as np
+from pathlib import Path
+import glob
+
 
 #from keras.applications.resnet50 import preprocess_input
 #from keras.preprocessing.image import ImageDataGenerator
 
 training_data_folder = r"."
+film_data_folder = os.path.join(training_data_folder, "films")
 csv_path = os.path.join(training_data_folder, "training_labels.csv")
 csv_test_path = os.path.join(training_data_folder, "training_labels_test.csv")
 csv_train_path = os.path.join(training_data_folder, "training_labels_train.csv")
@@ -21,6 +27,7 @@ bin_photos_path = os.path.join(training_data_folder, "training_images.bin")
 models_path = os.path.join(training_data_folder, "models")
 live_test_path = os.path.join(training_data_folder, "live_test_images")
 live_test_bin_path = os.path.join(training_data_folder, "live_test.bin")
+film_bin_path = os.path.join(film_data_folder, "film.bin")
 
 RESOLUTION = 224
 USE_LOGITS = False
@@ -34,6 +41,7 @@ columns = ['Name', 'Amusement park', 'Animals', 'Bench', 'Building', 'Castle',
        'Road', 'Rocks', 'Snow', 'Sport', 'Sports facility', 'Stairs', 'Trees',
        'Watercraft', 'Windows']
 
+
 def seperateTests(test_rate = 0.1, path = csv_path, test_path = csv_test_path, train_path = csv_train_path):
     print("Seperating tests...")
     csv_data = pd.read_csv(path)
@@ -46,8 +54,7 @@ def seperateTests(test_rate = 0.1, path = csv_path, test_path = csv_test_path, t
     csv_train_data.to_csv(train_path, index=False)
     print("Done")
 
-  
-    
+
 def proccessAllImages( paths):
     size = len(paths)
     images = np.empty([size, RESOLUTION, RESOLUTION, 3])
@@ -56,13 +63,16 @@ def proccessAllImages( paths):
         images[i] = processImage(paths[i])
     return images
 
+
 def processImage(path):
     image = cv2.imread(path)
     return cv2.cvtColor(cv2.resize(image, (RESOLUTION, RESOLUTION)), cv2.COLOR_BGR2RGB)
 
+
 def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
     print("Processing images...")
-    if(names_list == None):
+    print(names_list)
+    if names_list == None:
         names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
     end_i = names_list.size
     if count > 0:
@@ -75,8 +85,10 @@ def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, imag
     imagesData.tofile(bin_path)
     print("Done")
 
+
 def importImagesFromBinaryFile(path_to_file):
     return np.fromfile(path_to_file, dtype=np.uint8).reshape([-1, RESOLUTION, RESOLUTION, 3])
+
 
 def convertPredictionsToCsv(predictions, files, path_to_csv):
     print("Writing to csv...")
@@ -88,6 +100,7 @@ def convertPredictionsToCsv(predictions, files, path_to_csv):
     print("Done.")
     return df
 
+
 def convertPredictionsArrayToLabels(predictions):
     res = []
     for prediction in predictions:
@@ -98,11 +111,78 @@ def convertPredictionsArrayToLabels(predictions):
         res.append(subres)
     return res
 
+
+def film_to_frames(filename: str, path=film_data_folder, step:float=1):
+    print('Start conversion')
+    idx = filename.rfind('.')
+    movie_name = filename[:idx]
+
+    movie = cv2.VideoCapture(filename)
+    opened = movie.isOpened
+    
+    if not opened:
+        print(f'Error reading {filename}')
+        return
+    
+    framerate = math.floor(movie.get(cv2.CAP_PROP_FPS)*step)
+    fps = 0
+    target_folder = os.path.join(path, movie_name)
+
+    os.makedirs(target_folder, exist_ok=True)
+    files = glob.glob(target_folder+'/*')
+    for f in files:
+        os.remove(f)
+
+    while opened:
+        ret, frame = movie.read()
+        if ret == True:
+            if fps % framerate == 0:
+                cv2.imwrite(target_folder+f'/{int(fps/framerate)}.jpg', frame)
+            fps += 1
+        else:
+            break
+    
+    movie.release()
+    print('End conversion')
+
+
+def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1, treshold: int=0):
+    df = pd.read_csv(csv_path)
+    columns = df.columns.tolist()[1:]
+    stats = {col: 0 for col in columns}
+    conts = {col: 0 for col in columns}
+    tresh = {col: treshold for col in columns}
+    names = df['Name'].tolist()
+    times = [float(name[:name.rfind('.')])*jump for name in names]
+    df['time'] = times
+    df = df.sort_values(by='time', ascending=True)
+    for _, row in df.iterrows():
+        for col in columns:
+            if row[col] and not conts[col]:
+                stats[col] += 1
+                conts[col] =  1
+                tresh[col] =  treshold
+
+            elif not row[col] and tresh[col] and conts[col]:
+                tresh[col] -= 1
+
+            elif not row[col] and not tresh[col]:
+                conts[col] = 0
+
+    print()
+    for key, item in stats.items():
+        print(key, item)
+    print()
+
+    df.to_csv('xd.csv', index=None)
+
+
 class Manager:
     
     def __init__(self):
         self.csv_data = None
         pass
+    
     
     def initializeModel(self):
         
@@ -119,6 +199,7 @@ class Manager:
         
         print("Model compiled")
     
+    
     def initializeEnsamble(self, count):
         print("Loading base model...")
         self.base_model = keras.applications.ResNet50(include_top=False, pooling='avg', input_shape=(RESOLUTION, RESOLUTION, 3))
@@ -132,6 +213,7 @@ class Manager:
             self.ensamble[i].add(layers.Dense(38, activation='sigmoid'))
             self.ensamble[i].compile(optimizer='adam', loss=keras.losses.BinaryCrossentropy(from_logits=USE_LOGITS), metrics=[keras.metrics.BinaryAccuracy()])
         print("Ensamble compiled")
+    
     
     def initializeModel2(self):
         
@@ -152,6 +234,7 @@ class Manager:
         
         print("Model compiled")
     
+    
     def loadCsv(self, train_path = csv_train_path, test_path = csv_test_path):
         print("Loading csv...")
         train = pd.read_csv(train_path)
@@ -171,6 +254,7 @@ class Manager:
         self.x_test = self.x_train[0:(self.names_test.size)]
         self.x_train = self.x_train[(self.names_test.size):]
         print("Done")
+    
     
     def trainSmart(self, name, maxepochs=50, epoch_step = 1, max_last_improved = 10):
         last = self.test(verbose = 0)
@@ -200,12 +284,15 @@ class Manager:
                 last_improved = 0
                 self.loadModel(os.path.join(name, "best.h5"))
     
+    
     def train(self, epochs, verbose = 1):
         if verbose > 0:
             print("Training...")
         return self.model.fit(self.x_train, self.y_train, verbose = verbose, epochs = epochs)
         if verbose > 0:
             print("Done.")
+    
+    
     def trainEnsamble(self, epochs, verbose = 1):
         if verbose > 0:
             print("Training...")
@@ -216,12 +303,15 @@ class Manager:
         if verbose > 0:
             print("Done.")
         
+    
     def test(self, verbose = 1):
         if verbose > 0:
             print("Testing...")
         return self.model.evaluate(self.x_test, self.y_test, verbose = verbose)
         if verbose > 0:
             print("Done.")
+    
+    
     def testEnsamble(self, verbose = 1, treshold = 0.5):
         if verbose > 0:
             print("Testing...")
@@ -233,20 +323,26 @@ class Manager:
             print("Done.")
         return [res_loss, res_acc]
     
+    
     def saveModel(self, name, overwrite = False):
         print("Saving model...")
         self.model.save(os.path.join(models_path, name), overwrite=overwrite)
         print("Done")
+    
+    
     def loadModel(self, name):
         print("Loading model...")
         self.model = keras.models.load_model(os.path.join(models_path, name))
         print("Done")
         
+    
     def saveEnsamble(self, name, overwrite = False):
         print("Saving ensamble...")
         for i in range(len(self.ensamble)):
             self.ensamble[i].save(os.path.join(models_path, name + str(i) +'.h5'), overwrite=overwrite)
         print("Done")
+    
+    
     def loadEnsamble(self, name, count):
         print("Loading ensamble...")
         self.ensamble = [None] * count
@@ -254,6 +350,7 @@ class Manager:
             print("Loading model nr ", i)
             self.ensamble[i] = keras.models.load_model(os.path.join(models_path, name + str(i) +'.h5'))
         print("Done")
+    
     
     def getEnsamblePredictionsFromData(self, data, treshold = 0.5, verbose = 1):
         results = np.zeros(shape=[data.shape[0], 38])
@@ -265,6 +362,7 @@ class Manager:
             results_to_add = np.array(results_to_add)
             results += results_to_add
         return results / len(self.ensamble)
+    
     
     def getPredictionsArray(self, images_path = live_test_path, binary_path = None, treshold = 0.5):
         print("Predicting....")
@@ -280,6 +378,7 @@ class Manager:
         predictions = [ [( 1 if prediction >= treshold else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
         print("Done.")
         return (predictions, files)
+    
     
     def getEnsamblePredictionsArray(self, images_path = live_test_path, binary_path = None, treshold = 0.5):
         print("Predicting....")
@@ -297,9 +396,11 @@ class Manager:
         print("Done.")
         return (predictions, files)
     
+    
     def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
         predictions, files = self.getPredictionsArray(images_path, binary_path, treshold)
         return convertPredictionsToCsv(predictions, files, path_to_csv)
+    
     
     def predictEnsambleAndSaveToCsv(self, images_path = live_test_path, binary_path = live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
         predictions, files = self.getEnsamblePredictionsArray(images_path, binary_path, treshold)

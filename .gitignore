@@ -75,6 +75,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+*.mp4
+films/
+
 # Sphinx documentation
 docs/_build/
 
