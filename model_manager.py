@@ -25,6 +25,7 @@ live_test_path = os.path.join(training_data_folder, "live_test_images")
 live_test_bin_path = os.path.join(training_data_folder, "live_test.bin")
 
 RESOLUTION = 224
+USE_LOGITS = False
 
 
 columns = ['Name', 'Amusement park', 'Animals', 'Bench', 'Building', 'Castle',
@@ -154,8 +155,21 @@ class Manager:
         self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[keras.metrics.BinaryAccuracy()])
         
         print("Model compiled")
-        
-
+    
+    def initializeEnsamble(self, count):
+        print("Loading base model...")
+        self.base_model = keras.applications.ResNet50(include_top=False, pooling='avg', input_shape=(RESOLUTION, RESOLUTION, 3))
+        self.base_model.trainable = False
+        print("Creating models...")
+        self.ensamble = [ None ] * count
+        for i in range(count):
+            print("Creating model nr. ", i)
+            self.ensamble[i] = keras.Sequential()
+            self.ensamble[i].add(self.base_model)
+            self.ensamble[i].add(layers.Dense(38, activation='sigmoid'))
+            self.ensamble[i].compile(optimizer='adam', loss=keras.losses.BinaryCrossentropy(from_logits=USE_LOGITS), metrics=[keras.metrics.BinaryAccuracy()])
+        print("Ensamble compiled")
+    
     def initializeModel2(self):
         
         print("Loading base model...")
@@ -169,7 +183,7 @@ class Manager:
         
         #optimizer = tfa.optimizers.RectifiedAdam()
         optimizer = keras.optimizers.Adam(learning_rate=0.00004)
-        loss = keras.losses.BinaryCrossentropy(from_logits=True)
+        loss = keras.losses.BinaryCrossentropy(from_logits=USE_LOGITS)
         metrics=[keras.metrics.BinaryAccuracy()]
         self.model.compile(optimizer=optimizer, loss=loss, metrics = metrics)
         
@@ -228,13 +242,34 @@ class Manager:
             print("Training...")
         return self.model.fit(self.x_train, self.y_train, verbose = verbose, epochs = epochs)
         if verbose > 0:
-            print("Done...")
+            print("Done.")
+    def trainEnsamble(self, epochs, verbose = 1):
+        if verbose > 0:
+            print("Training...")
+        for i in range(len(self.ensamble)):
+            if verbose > 0:
+                print("Model nr", i)
+            self.ensamble[i].fit(self.x_train, self.y_train, verbose = verbose, epochs = epochs)
+        if verbose > 0:
+            print("Done.")
+        
     def test(self, verbose = 1):
         if verbose > 0:
             print("Testing...")
         return self.model.evaluate(self.x_test, self.y_test, verbose = verbose)
         if verbose > 0:
-            print("Done...")
+            print("Done.")
+    def testEnsamble(self, verbose = 1, treshold = 0.5):
+        if verbose > 0:
+            print("Testing...")
+        predictions = self.getEnsamblePredictionsFromData(self.x_test, treshold, verbose)
+        res_loss = np.mean(keras.losses.binary_crossentropy(self.y_test, predictions, from_logits=USE_LOGITS))
+        res_acc = np.mean(keras.metrics.binary_accuracy(self.y_test, predictions))
+        if verbose > 0:
+            print("Loss: ", res_loss, "  Acc: ", res_acc)
+            print("Done.")
+        return [res_loss, res_acc]
+    
     def saveModel(self, name, overwrite = False):
         print("Saving model...")
         self.model.save(os.path.join(models_path, name), overwrite=overwrite)
@@ -243,6 +278,30 @@ class Manager:
         print("Loading model...")
         self.model = keras.models.load_model(os.path.join(models_path, name))
         print("Done")
+        
+    def saveEnsamble(self, name, overwrite = False):
+        print("Saving ensamble...")
+        for i in range(len(self.ensamble)):
+            self.ensamble[i].save(os.path.join(models_path, name + str(i) +'.h5'), overwrite=overwrite)
+        print("Done")
+    def loadEnsamble(self, name, count):
+        print("Loading ensamble...")
+        self.ensamble = [None] * count
+        for i in range(count):
+            print("Loading model nr ", i)
+            self.ensamble[i] = keras.models.load_model(os.path.join(models_path, name + str(i) +'.h5'))
+        print("Done")
+    
+    def getEnsamblePredictionsFromData(self, data, treshold = 0.5, verbose = 1):
+        results = np.zeros(shape=[data.shape[0], 38])
+        for i in range(len(self.ensamble)):
+            if verbose > 0:
+                print("Model nr", i)
+            predictions_raw = self.ensamble[i].predict(data, verbose = verbose)
+            results_to_add = [ [( 1 if prediction >= treshold else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
+            results_to_add = np.array(results_to_add)
+            results += results_to_add
+        return results / len(self.ensamble)
     
     def getPredictionsArray(self, images_path = live_test_path, binary_path = None, treshold = 0.5):
         print("Predicting....")
@@ -259,8 +318,28 @@ class Manager:
         print("Done.")
         return (predictions, files)
     
-    def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = None, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
-        predictions, files = self.getPredictionsArray(images_path, binary_path)
+    def getEnsamblePredictionsArray(self, images_path = live_test_path, binary_path = None, treshold = 0.5):
+        print("Predicting....")
+        files = [file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))]           
+        images = None
+        if binary_path != None:
+            images = importImagesFromBinaryFile(binary_path)
+        else:
+            filepaths = [os.path.join(images_path, filename) for filename in files]
+            images = proccessAllImages(filepaths)
+            
+        predictions_raw = self.getEnsamblePredictionsFromData(images, treshold = treshold)
+        predictions = [ [( 1 if prediction >= 0.5 else 0) for prediction in prediction_run ] for prediction_run in predictions_raw]
+        
+        print("Done.")
+        return (predictions, files)
+    
+    def predictAndSaveToCsv(self, images_path = live_test_path, binary_path = live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
+        predictions, files = self.getPredictionsArray(images_path, binary_path, treshold)
+        return convertPredictionsToCsv(predictions, files, path_to_csv)
+    
+    def predictEnsambleAndSaveToCsv(self, images_path = live_test_path, binary_path = live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "result.csv"), treshold=0.5):
+        predictions, files = self.getEnsamblePredictionsArray(images_path, binary_path, treshold)
         return convertPredictionsToCsv(predictions, files, path_to_csv)
 
 """
