@@ -12,8 +12,9 @@ import cv2
 import numpy as np
 from pathlib import Path
 import glob
+from altair_saver import save
 
-#import altair as alt
+alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
 #alt.renderers.enable('mimetype')
 
 
@@ -75,8 +76,8 @@ def processImage(path):
 def processAllImagesToBinary(names_list = None, bin_path = bin_photos_path, images_path = photos_path, start_i = 0, count = -1):
     print("Processing images...")
     print(names_list)
-    if names_list == None:
-        names_list = np.array([file for file in os.listdir(images_path) if os.path.isfile(os.path.join(images_path, file))])
+    #if names_list == None:
+    names_list = np.array([file for file in names_list if os.path.isfile(os.path.join(images_path, file))])
     end_i = names_list.size
     if count > 0:
         end_i = math.min(start_i + count, end_i)
@@ -175,7 +176,8 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
             if row[col] and not conts[col]:
                 started[col] = {
                     'class': col,
-                    'xp': row['time']
+                    'xp': row['time'],
+                    'xk': 0
                 }
                 stats[col] += 1
                 conts[col] =  1
@@ -184,27 +186,30 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
             elif not row[col] and tresh[col] and conts[col]:
                 tresh[col] -= 1
 
-            elif not row[col] and not tresh[col]:
+            elif not row[col] and not tresh[col] and conts[col]:
                 conts[col] = 0
                 started[col]['xk'] = prev_row['time']
                 ended.append(started[col])
         
         prev_row = row
 
-    cats = []
-    vals = []
-    for key, item in stats.items():
-        cats.append(key)
-        vals.append(item)
+    for col in started:
+        if started[col]:
+            if not started[col]['xk']:
+                started[col]['xk'] = prev_row['time']
+                ended.append(started[col])
 
-    df_dict = {
-        'Categories': cats,
-        'Occurrence': vals
-    }
-
-    stats_df = pd.DataFrame(df_dict)
+    chart = alt.Chart(pd.DataFrame(ended)).mark_bar(height=10, color="rgb(200,100,0)").encode(
+        alt.X('xp', title=''),
+        alt.X2('xk',title=''),
+        alt.Y('class',title='')
+    ).configure(
+        background="#202020",    
+    ).configure_axis(
+        labelColor="#ffffff"
+    )
     
-    return ended
+    save(chart,'chart.svg')
 
 
 class Manager:
