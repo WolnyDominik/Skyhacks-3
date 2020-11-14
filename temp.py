@@ -3,12 +3,16 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+# config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 
 # exit()
 
 #najpierw ustawić scierzki wszystkie
 
-step = 0.5
+step = 1
 film_name = 'czesto.mp4'
 czesto_path = os.path.join(film_data_folder, "czesto")
 
@@ -52,5 +56,5 @@ manager.predictAndSaveToCsv(
     path_to_csv=os.path.join(film_data_folder, "film.csv"), 
     treshold = 0.2)
 
-process_film_csv(jump=step)
+process_film_csv(jump=step, treshold=2)
 

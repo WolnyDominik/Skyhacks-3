@@ -146,23 +146,28 @@ def film_to_frames(filename: str, path=film_data_folder, step:float=1):
     print('End conversion')
 
 
-def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1):
+def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1, treshold: int=0):
     df = pd.read_csv(csv_path)
     columns = df.columns.tolist()[1:]
     stats = {col: 0 for col in columns}
-    prevs = {col: 0 for col in columns}
+    conts = {col: 0 for col in columns}
+    tresh = {col: treshold for col in columns}
     names = df['Name'].tolist()
     times = [float(name[:name.rfind('.')])*jump for name in names]
     df['time'] = times
     df = df.sort_values(by='time', ascending=True)
     for _, row in df.iterrows():
         for col in columns:
-            if row[col] and not prevs[col]:
+            if row[col] and not conts[col]:
                 stats[col] += 1
-                prevs[col] =  1
+                conts[col] =  1
+                tresh[col] =  treshold
 
-            elif not row[col] and prevs[col]:
-                prevs[col] = 0
+            elif not row[col] and tresh[col] and conts[col]:
+                tresh[col] -= 1
+
+            elif not row[col] and not tresh[col]:
+                conts[col] = 0
 
     print()
     for key, item in stats.items():
