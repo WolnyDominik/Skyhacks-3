@@ -81,6 +81,7 @@ target/
 live_test_images/
 training_images/
 .vscode/
+models/
 # Jupyter Notebook
 .ipynb_checkpoints
 
