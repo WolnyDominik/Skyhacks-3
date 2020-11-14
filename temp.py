@@ -14,7 +14,11 @@ manager.importTrainingDataFromBinaryFile()
 #manager.train(2)
 #manager.test()
 
+manager.loadEnsamble('ens', count = 5)
+#manager.trainEnsamble(5)
+manager.testEnsamble()
+
 #manager.trainSmart("smartv2", 2000, max_last_improved=20)
 #manager.saveModel('smartv2\\last.h5')
-manager.loadModel('smartv2\\best.h5')
+#manager.loadModel('smartv2\\best.h5')
 #manager.predictAndSaveToCsv(binary_path=live_test_bin_path, path_to_csv = os.path.join(training_data_folder, "smartv1.csv"), treshold = 0.2)
