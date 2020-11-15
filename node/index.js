@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.urlencoded( { extended: true } ));
 app.use(express.json() )  
-
+app.use('favicon.ico', express.static('favicon.ico'));
 const usedIds = {"": true}
 function generateNewId()
 {

@@ -107,7 +107,7 @@ function createProcessingComponent(id, type, file)
     x=file.name.slice(file.name.lastIndexOf('.'),file.name.length);
     y='file';
     console.log(id+x);
-    let video=`<video width="480" height="360" controls> <source src="data/${id}/${y+x}" type="video/mp4"> <source src="data/${id}/${y+x}" type="video/mov">`
+    let video=`<video width="480" height="360" controls> <source src="data/${id}/${y+x}" type="video/mp4"> <source src="data/${id}/${y+x}" type="video/mov"></video`
     let audio=`<audio controls>  <source src="data/${id}/${y+x}" type="audio/mpeg"> Your browser does not support the audio element. </audio> `
     const template=`
         <header>Processing ${type} file: <span class="filename">${file.name}</span></header>
