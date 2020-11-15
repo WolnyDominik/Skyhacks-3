@@ -51,7 +51,7 @@ class ProcessingRequest
 
         try{
             
-                return `<img src="data/${this.id}/film.svg">`;
+                return `<img class="img" src="data/${this.id}/film.svg">`;
             
         }
         catch(err)
@@ -196,8 +196,8 @@ app.post('/message', (req, res) => {
 
 function createDirectoryAndCopyFile(file, id)
 {
-    dir0 = path.join(__dirname, "data");
-    dir1 = path.join(dir0, "requests");
+    dir0 = path.join(__dirname, "public");
+    dir1 = path.join(dir0, "data");
     dir2 = path.join(dir1, id);
     
     if (!fs.existsSync(dir0)){
@@ -210,7 +210,7 @@ function createDirectoryAndCopyFile(file, id)
         fs.mkdirSync(dir2);
     }
     
-    const filepath = path.join(dir2, file.filename + path.extname(file.originalname));
+    const filepath = path.join(dir2, "file" + path.extname(file.originalname));
     fs.renameSync(file.path, filepath);
     return filepath;
 }
@@ -294,14 +294,14 @@ app.get('/result/:id', (req, res) => {
         res.json(result);
         return;
     }
-    if(request.status==2 || request.status==3)
+    /*if(request.status==2 || request.status==3)
     {
         setTimeout(()=>{
             fs.rmdirSync(path.dirname(request.filepath),{recursive:true});
             releaseId(request.id)
             delete processingLookup[request.id]
         });
-    }
+    }*/
     
     let result = {
         hasResult: true,

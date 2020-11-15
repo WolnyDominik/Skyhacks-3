@@ -104,17 +104,23 @@ function setProcessingResult(component)
 
 function createProcessingComponent(id, type, file)
 {
+    x=file.name.slice(file.name.lastIndexOf('.'),file.name.length);
+    y='file';
+    console.log(id+x);
+    let video=`<video width="480" height="360" controls> <source src="data/${id}/${y+x}" type="video/mp4"> <source src="data/${id}/${y+x}" type="video/mov">`
+    let audio=`<audio controls>  <source src="data/${id}/${y+x}" type="audio/mpeg"> Your browser does not support the audio element. </audio> `
     const template=`
         <header>Processing ${type} file: <span class="filename">${file.name}</span></header>
         <section class="status"> 
-            <section> Progress: <span id="${id}_progress_counter" >0%<span> </section>
+        <section> Progress: <span id="${id}_progress_counter" >0%<span> </section>
         </section>
-        <section class="result" id="${id}_result">
+        <section id="resultContainer">
+        <section id="${id}_result" class="result" >
         </section>
         <section class="player">
-        ${type=="video"?`<video width="320" height="240" controls> <source src="${file}" type="video/mp4"> <source src="${file}" type="video/mov">`
-        :` <audio controls>  <source src="${file}" type="audio/mpeg"> Your browser does not support the audio element. </audio> `}
-        <section class="player">
+        ${type=="video"?video:audio}
+        </section >
+        </section >
         
     `;
     component = createComponent(id, "processing", template);
@@ -150,7 +156,7 @@ function uploadFileForAnalisys(input, type)
             console.log("error while receiving");
         }
         else{
-            createProcessingComponent(data.id, type, input.files[0]);
+            createProcessingComponent(responseJson.id, type, input.files[0]);
         }
         sendingComponent.delete();
     });
