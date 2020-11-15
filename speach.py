@@ -97,7 +97,7 @@ def transcribe_file(speech_file):
 src = "test.mp3"
 dst = "test.flac"
 startSec = 0
-endSec = 30
+endSec = 60
 startTime = startSec*1000
 endTime = endSec*1000
 song = AudioSegment.from_mp3( src )
