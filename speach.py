@@ -14,16 +14,16 @@ columnsLabel = ['Name','Amusement park', 'Animals', 'Bench', 'Building', 'Castle
        'Road', 'Rocks', 'Snow', 'Sport', 'Sports facility', 'Stairs', 'Trees',
        'Watercraft', 'Windows']
 columns = [["park rozrywki", 'lunapark','wesołe'],
-        ['zwierzę', "stajni", "zoo", "zwierz", "wieś", "wisi", 'ryb','wąż','sarna','ptaki','pies','kot', 'przyro', "natur"],
+        ['zwierzę', "stajni", "zoo", "zwierz", "wieś", "wisi", 'ryb','wąż','sarna','ptaki','pies','kot', 'przyro', "natur", "alpak", "kucyk", "kozy", "konie"],
         ['ławka', 'siedzi','zydel'],
         ['budyn',"apartamentowiec", "biurowiec", "bliźniak", "blok", "blokhauz", "bungalow", "ceglak", "czynszówka", "dacza", "dom", "domek", "domostwo", "drapacz chmur", "dworzyszcze", "gmach", "kamienica", "murowaniec", "nieruchomość", "piętrowiec", "segment", "szeregowiec", "wieżowiec", "apartament", "budowl", "chata", "mieszkanie", "pałac", "rezydencja", "willa", "zamek", "bloczysko"],
-        ['zamek', 'zamkó', 'dworek', 'cytadela', 'baszta', 'flanki', 'mur', 'blanki', 'łucznicy'],
+        ['zamek', 'zamkó', 'podzamcz', 'zamku', "orle", "królewski", 'rycerski', 'dworek', 'cytadela', 'baszta', 'flanki', 'mur', 'blanki', 'łucznicy'],
         ['jaskinia', "czeluść", "głębia", "grota", "jama", "jamka", "lej", "leże", "loch", "nora", "norka", "otwór", "pieczara", "rozpadlina", "szczelina", "wgłębienie", "wgłębienie skalne", "wykrot", "wyrwa", "zagłębienie", "załamanie"],
         ['kościół', "archikatedra", "bazylika", "modlitwy", "pański",  "boży", "wiara", "świątynia", "chrześcijanie", "wierni", "wspólnota"],
         ['miast', "dzielnic", "aglomeracj", "betonowa dżungla", "metropolia", "miasteczko", "miejscowość", "mieścina", "osada", "osiedle", "wioska", "cywilizacja", "konurbacja", "urbanizacja", "katowice", "częstoch", "sosnowiec", "gliwice", "bytom"],
         ["krzyż"],
         ['instytucja kultury', "kin", "muzeum", "bibliotek", "oper", "operetk", "filharmoni", "teatr", "orkiestr", "kultury","kultura", "artystycz", "galeri", "sztuki"],
-        ["jedzenie", "zjeść", "pożywienie", 'jem'],
+        ["jedzenie", "zjeść", "pożywienie", 'jem', 'gastron'],
         ["ścieżka", "spacer", "walking",  "chodnik", "deptak", "szlak"],
         ["las", "bór", "dżungla", 'przyro', "gaj","knieja","laseczek","lasek","łęg","młodnik","puszcza","regiel","selwa","tajga","zagaj","zagajnik","zalesienie"],
         ["meble", "sprzęty", "umeblowanie", "wyposażenie", "wystrój", "zabudowa", "stół", "krzeslo", "łóżk", "szafk"],
@@ -34,7 +34,7 @@ columns = [["park rozrywki", 'lunapark','wesołe'],
         ['kopalnia', "szyb" , "kopaln", "węgl", "kwk", "wegięl", "kamienny", "wieliczka", "źródło", "hawiernia", "sztolnia", "zakład górniczy"],
         ['pomnik',"cenotaf", "dolmen", "figura", "kamień nagrobny", "monument", "nagrobek", "obelisk", "pamiątka", "pomniczek", "posąg", "rzeźba", "statua", "bałwan", "figurka", "figurynka", "monolit", "popiersie", "statuetka", "totem", "epitafium", "inskrypcja nagrobna"],
         ['Pojazd mechaniczny', "auto", "automobil", "bryczka", "bryka", "czterokołowiec", "dwuślad", "dwuśladowiec", "fura", "gablot", "limuzyna", "maszyna", "osobówka", "pojazd", "samochodzik", "samochód", "środek transportu", "wóz", "wózek", "środek lokomocji", "motor"],
-        ['góry', "morza", "czub", "czubek", "grań", "grzbiet", "kalenica", "gór", "masyw", "pagórek", "pasmo", "szczyt", "szpic", "turnia", "wierch", "wierzchołek", "wzgórze", "wzniesie"],
+        ['góry', "ostańc", "morza", "czub", "czubek", "grań", "grzbiet", "kalenica", "gór", "masyw", "pagórek", "pasmo", "szczyt", "szpic", "turnia", "wierch", "wierzchołek", "wzgórze", "wzniesie"],
         ['muzeum', "galeria", "kolekcja", "kolekcja dzieł", "pinakoteka", "salon wystawowy", "wernisaż", "wystawa", "zbiór", "zbiór dzieł sztuki", "gliptoteka", "panoptikum", "park etnograficzny"],
         ['skansen', "anachronizm", "archaiz", "przeżyt", "relikt", "przeszłości", "starość", "zabytek", "zabytków"],
         ['park', "zabaw", "parczek", "rezerwat", "botanik", "kwiaty", "krzew", "drzew", "raj", "ogród", "skwer", "zieleniec"],
@@ -94,6 +94,8 @@ def transcribe_file(speech_file):
                 start_time = word_info.start_time
                 end_time = word_info.end_time
                 outputs.append([word.lower(), start_time.total_seconds(), end_time.total_seconds()])
+
+
 src = "test.mp3"
 dst = "test.flac"
 startSec = 0
@@ -108,14 +110,14 @@ for key, j in enumerate(outputs):
     for i in range(38):
         for element in columns[i]:
             try:
-              if((j[0].find(element))!=-1):
-                if(outputs[key][2] - outputs[key][1]<1):
-                    toSource.append({"class":  columnsLabel[i+1],"xp":outputs[key][1] ,"xk": (outputs[key][2]+1)})
-                else:
-                    toSource.append({"class":  columnsLabel[i+1],"xp":outputs[key][1] ,"xk": outputs[key][2]+0.3})
-                print(outputs[key][0])
-                print(outputs[key][2])
-                # print(columns[i])
+                if((j[0].find(element))!=-1):
+                    if(outputs[key][2] - outputs[key][1]<1):
+                        toSource.append({"class":  columnsLabel[i+1],"xp":outputs[key][1] ,"xk": (outputs[key][2]+1.3)})
+                    else:
+                        toSource.append({"class":  columnsLabel[i+1],"xp":outputs[key][1] ,"xk": outputs[key][2]+0.6})
+                    print(outputs[key][0])
+                    print(outputs[key][2])
+                    # print(columns[i])
             except:
                 pass
             
