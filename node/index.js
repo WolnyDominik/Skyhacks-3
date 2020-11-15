@@ -42,20 +42,35 @@ class ProcessingRequest
     }
     
     getResult()
-    {        
-        const resultPath = path.join(path.dirname(this.filepath), "film.html");
-        const data = fs.readFileSync(resultPath, {encoding: "utf-8"});
-        const extracted_start = data.indexOf("<body>");
-        const extracted_end = data.indexOf("</body>");
-        return data.slice(extracted_start+"<body>".length, extracted_end);
+    {   
+        if(this.status !== 2)
+        {
+            return undefined;
+        }
+        
+        try{
+            if(this.isVideo)
+            {
+                const resultPath = path.join(path.dirname(this.filepath), "film.html");
+                const data = fs.readFileSync(resultPath, {encoding: "utf-8"});
+                const extracted_start = data.indexOf("<body>");
+                const extracted_end = data.indexOf("</body>");
+                return data.slice(extracted_start+"<body>".length, extracted_end);
+            }
+        }
+        catch(err)
+        {
+            console.log(err);
+            return undefined;
+        }
     }
 }
 
 const processingQueue = [];
 const processingLookup = {};
-function enqueueRequest(id, filepath)
+function enqueueRequest(id, filepath, isVideo)
 {
-    const request = new ProcessingRequest(id, filepath);
+    const request = new ProcessingRequest(id, filepath, isVideo);
     processingQueue.push(id);
     processingLookup[id] = request;
 }
@@ -102,31 +117,42 @@ function delegateForAnalysis(request) // TODO
     
     return new Promise((resolve, reject)=>{
         
-        if(request.isVideo)
-        {
-            console.log("Start");
-            child_process.exec(`python ../film.py ${request.filepath}`, (error, stdout, stderr) => {
-            
-                console.log("Lol");
+        setTimeout( () => {
+            if(request.isVideo)
+            {
+                console.log("Start");
+                const command = `python ../film.py ${request.filepath}`
                 
-                if (error) {
-                    console.error(`exec error: ${error}`);
-                    reject();
-                }
-                else
-                {
-                    console.log(`stdout: ${stdout}`);
-                    console.error(`stderr: ${stderr}`);
-                    resolve();
-                }
-            });
-        }
-        else
-        {
-            // TODO
-            reject();
-        }
-        
+                const process = child_process.exec(command, (error, stdout, stderr) => {
+                
+                    console.log("Lol");
+                    
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                    }
+                    else
+                    {
+                        console.log(`stdout: ${stdout}`);
+                        console.error(`stderr: ${stderr}`);
+                    }
+                });
+                
+                process.on("close", (code, signal) => {
+                    console.log(`=== Closed, code: ${code}, signal: ${signal} ===`);
+                    if(code === 0) {
+                        resolve();
+                    }
+                    else {
+                        reject();
+                    }
+                });
+            }
+            else
+            {
+                // TODO
+                reject();
+            }
+        }, 10);
         
     });
 }
@@ -170,6 +196,7 @@ function createDirectoryAndCopyFile(file, id)
 app.post('/upload/video', upload.any(), (req, res) => {
     if(req.files.length != 1)
     {
+        console.log("Failed")
         res.sendStatus(400);
         res.end();
         return;
@@ -183,11 +210,12 @@ app.post('/upload/video', upload.any(), (req, res) => {
     const filepath = createDirectoryAndCopyFile(file, id);
     
     enqueueRequest(id, filepath, true);
-    processNextRequest();
-    
     res.json({id: id});
+    res.end();
     
+    console.log("END");
     
+    setTimeout(processNextRequest, 10);
 })
 
 app.post('/upload/audio', upload.any(), (req, res) => {
@@ -206,10 +234,12 @@ app.post('/upload/audio', upload.any(), (req, res) => {
     const filepath = createDirectoryAndCopyFile(file, id);
     
     enqueueRequest(id, filepath, false);
-    processNextRequest();
-    
     res.json({id: id});
+    res.end();
     
+    console.log("END");
+    
+    setTimeout(processNextRequest, 10);
 });
 
 
@@ -245,7 +275,7 @@ app.get('/result/:id', (req, res) => {
     
     let result = {
         hasResult: true,
-        result: request.getResult()
+        result: request.getResult() || "Failed"
     };
    
     res.json(result);

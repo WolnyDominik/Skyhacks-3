@@ -29,9 +29,7 @@ function createComponent(id, classname = "", innerHTML = "")
     component.innerHTML = innerHTML;
     document.getElementById("components_container").appendChild(component);
     const component_ = new Component(component);
-    component_.element.setAttribute("component_index", componentsList.length);
     setTimeout(()=>component_.element.style.opacity = "1", 100);
-    componentsList.push( component_ );
     return component_;
 }
 
@@ -41,13 +39,20 @@ class Component
     {
         this.element = element;
     }
+    
+    delete()
+    {
+        this.element.parentElement.removeChild(this.element);
+    }
 }
 
-const componentsList = [];
-
+function createSendingComponent(file)
+{
+    return createComponent("", "sending", `<section>Sending file: <span>${file.name}</span>, (${file.size} bytes)`);
+}
 
 function refreshStatus(component)
-{
+{    
     console.log("refreshing");
     fetch('/status/' + component.id, 
     {
@@ -117,6 +122,9 @@ function uploadFileForAnalisys(input, type)
     var data = new FormData();
     data.append('file', input.files[0]);
     
+    
+    let sendingComponent = createSendingComponent(input.files[0]);
+    
     fetch("/upload/" + type,
     {
         method: "POST",
@@ -125,6 +133,7 @@ function uploadFileForAnalisys(input, type)
     .then(function(res){ return res.json(); })
     .then(function(data){ createProcessingComponent(data.id, type, input.files[0]) })
     .catch(function(err){ console.log(err); })
+    .then(function(){ sendingComponent.delete(); })
     
     console.log(type + " send");
 }
