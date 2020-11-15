@@ -48,15 +48,11 @@ class ProcessingRequest
             return undefined;
         }
         
+
         try{
-            if(this.isVideo)
-            {
-                const resultPath = path.join(path.dirname(this.filepath), "film.html");
-                const data = fs.readFileSync(resultPath, {encoding: "utf-8"});
-                const extracted_start = data.indexOf("<body>");
-                const extracted_end = data.indexOf("</body>");
-                return data.slice(extracted_start+"<body>".length, extracted_end);
-            }
+            
+                return `<img src="data/${this.id}/film.svg">`;
+            
         }
         catch(err)
         {
@@ -121,7 +117,8 @@ function delegateForAnalysis(request) // TODO
             if(request.isVideo)
             {
                 console.log("Start");
-                const command = `python ../film.py ${request.filepath}`
+                console.log(request.filepath)
+                const command = `python /home/achillesv/Documents/SkyHacks/Skyhacks-3/film.py ${request.filepath} ${path.join("/home/achillesv/Documents/SkyHacks/Skyhacks-3/node/public/data",request.id)}`
                 
                 const process = child_process.exec(command, (error, stdout, stderr) => {
                 
@@ -149,8 +146,33 @@ function delegateForAnalysis(request) // TODO
             }
             else
             {
-                // TODO
-                reject();
+                console.log("Start");
+                console.log(request.filepath)
+                const command = `python /home/achillesv/Documents/SkyHacks/Skyhacks-3/speech.py ${request.filepath} ${path.join("/home/achillesv/Documents/SkyHacks/Skyhacks-3/node/public/data",request.id)}`
+                
+                const process = child_process.exec(command, (error, stdout, stderr) => {
+                
+                    console.log("Lol");
+                    
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                    }
+                    else
+                    {
+                        console.log(`stdout: ${stdout}`);
+                        console.error(`stderr: ${stderr}`);
+                    }
+                });
+                
+                process.on("close", (code, signal) => {
+                    console.log(`=== Closed, code: ${code}, signal: ${signal} ===`);
+                    if(code === 0) {
+                        resolve();
+                    }
+                    else {
+                        reject();
+                    }
+                });
             }
         }, 10);
         
@@ -188,7 +210,7 @@ function createDirectoryAndCopyFile(file, id)
         fs.mkdirSync(dir2);
     }
     
-    const filepath = path.join(dir2, file.filename + '.' + file.originalname);
+    const filepath = path.join(dir2, file.filename + path.extname(file.originalname));
     fs.renameSync(file.path, filepath);
     return filepath;
 }
@@ -271,6 +293,14 @@ app.get('/result/:id', (req, res) => {
         
         res.json(result);
         return;
+    }
+    if(request.status==2 || request.status==3)
+    {
+        setTimeout(()=>{
+            fs.rmdirSync(path.dirname(request.filepath),{recursive:true});
+            releaseId(request.id)
+            delete processingLookup[request.id]
+        });
     }
     
     let result = {
