@@ -48,7 +48,12 @@ class Component
 
 function createSendingComponent(file)
 {
-    return createComponent("", "sending", `<section>Sending file: <span>${file.name}</span>, (${file.size} bytes)`);
+    const component = createComponent("", "sending", `<section>Sending file: <span>${file.name}</span>, (${file.size} bytes) <span field="progress">0%</span>`);
+    component.setProgress = function(value)
+    {
+        component.element.querySelector(`[field="progress"]`).innerHTML = value;
+    }
+    return component;
 }
 
 function refreshStatus(component)
@@ -119,10 +124,36 @@ function uploadFileForAnalisys(input, type)
 {
     console.log("Sending " + type);
     
-    var data = new FormData();
+    const data = new FormData();
     data.append('file', input.files[0]);
-    
-    
+        
+    const request = new XMLHttpRequest();
+    request.open('POST', '/upload/' + type); 
+
+    const sendingComponent = createSendingComponent(input.files[0]);
+    request.upload.addEventListener('progress', function(e) {
+        const percent_completed = (e.loaded / e.total)*100;
+        sendingComponent.setProgress(percent_completed + "%");
+        console.log(percent_completed);
+    });
+
+    request.addEventListener('load', function(e) {
+        // HTTP status message (200, 404 etc)
+        const responseJson = JSON.parse(request.response) || {};
+        if(!responseJson.id)
+        {
+            console.log("error while receiving");
+        }
+        else{
+            createProcessingComponent(data.id, type, input.files[0]);
+        }
+        sendingComponent.delete();
+    });
+
+    // send POST request to server
+    request.send(data);
+
+    /*
     let sendingComponent = createSendingComponent(input.files[0]);
     
     fetch("/upload/" + type,
@@ -136,4 +167,5 @@ function uploadFileForAnalisys(input, type)
     .then(function(){ sendingComponent.delete(); })
     
     console.log(type + " send");
+    */
 }
