@@ -2,9 +2,12 @@ import io
 import os
 import pandas as pd
 import altair as alt
-from vega_datasets import data
-
+from altair_saver import save
+import sys
 from pydub import AudioSegment
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/achillesv/Downloads/test.json"
+audio_name = sys.argv[1]
+audio_folder= sys.argv[2]
 outputs = []
 columnsLabel = ['Name','Amusement park', 'Animals', 'Bench', 'Building', 'Castle',
        'Cave', 'Church', 'City', 'Cross', 'Cultural institution', 'Food',
@@ -29,7 +32,7 @@ columns = [["park rozrywki", 'lunapark','wesołe'],
         ["meble", "sprzęty", "umeblowanie", "wyposażenie", "wystrój", "zabudowa", "stół", "krzeslo", "łóżk", "szafk"],
         ['trawa', "kwietnik", "wieś", "wisi", "murawa","trawnik","darnina", "natur", 'przyro', "sielsk", 'przyrod',],
         ["cmentarz", "grób", "groby",  "polegl"],
-        ['jezioro', "stawó", "woda", "wód", "akwen", "bagno", "bajoro", "glinianka", "jeziorko", "mulisko", "oczko wodne", "sadzawka", "staw", "zarośnięte jezioro", "zarośnięty staw", "obszar wodny", "zalew", "zalewisko", "zbiornik wody", "jeziorzysko", "szot", "szott"],
+        ['jezior', "stawó", "woda", "wód", "akwen", "bagno", "bajoro", "glinianka", "mulisko", "oczko wodne", "sadzawka", "staw", "zarośnięty staw", "obszar wodny", "zalew", "zalewisko", "zbiornik wody", "szot", "szott"],
         ["krajobraz", "agroturysty" ,"obraz", "panorama", "scena", "widok", "wizja", "okolica", "pejzaż", "perspektywa", "sceneria", "plener", "widoczek", "otwarta przestrzeń", "przestrzeń", "środowisko", "pejzażyk"],
         ['kopalnia', "szyb" , "kopaln", "węgl", "kwk", "wegięl", "kamienny", "wieliczka", "źródło", "hawiernia", "sztolnia", "zakład górniczy"],
         ['pomnik',"cenotaf", "dolmen", "figura", "kamień nagrobny", "monument", "nagrobek", "obelisk", "pamiątka", "pomniczek", "posąg", "rzeźba", "statua", "bałwan", "figurka", "figurynka", "monolit", "popiersie", "statuetka", "totem", "epitafium", "inskrypcja nagrobna"],
@@ -40,7 +43,7 @@ columns = [["park rozrywki", 'lunapark','wesołe'],
         ['park', "zabaw", "parczek", "rezerwat", "botanik", "kwiaty", "krzew", "drzew", "raj", "ogród", "skwer", "zieleniec"],
         ["człowiek", "agroturysty" , "gość", "osobnik"],
         ["rośliny", "wieś", "wisi", "głąb", "kaczan", "kłącz", "kolba", "łodyg", "pęd", "szypuł", "kolorowe piękno natury", "kwiatek"],
-        ['zbiornik', "stawó", "akwen", "jezioro", "obszar wodny", "zalew", "zalewisko"],
+        ['zbiornik', "stawó", "akwen", "jezior", "obszar wodny", "zalew", "zalewisko"],
         ["ciek", "dopływ", "pływ", "potok", "ruczaj", "rzeczka", "rzeczułka", "rzek", "struga", "strumień", "strumyk"],
         ["droga", "arteria", "arteria komunikacyjna", "autostrada", "ciąg komunikacyjny", "droga", "droga ekspresowa", "gościniec", "jezdnia", "magistrala", "obwodnica", "przejazd", "ulic", "szlak", "szlak komunikacyjny", "szosa", "ścieżk", "tor", "trakt", "trasa", "ulica"],
         ["skały", "blok skalny", "bryła skalna", "eratyk", "głaz", "kamienisko", "kamień", "kamuszek", "kamyczek", "kamyk", "minerał", "narzutniak", "narzutowiec", "odłamek", "odłupek", "otoczak", "opoka", "skaliste podłoże", "granit", "marmur", "ostaniec"],
@@ -94,7 +97,7 @@ def transcribe_file(speech_file):
                 start_time = word_info.start_time
                 end_time = word_info.end_time
                 outputs.append([word.lower(), start_time.total_seconds(), end_time.total_seconds()])
-src = "test.mp3"
+src = audio_name
 dst = "test.flac"
 startSec = 0
 endSec = 60
@@ -131,5 +134,6 @@ chart=alt.Chart(source).mark_bar(height=10, color="rgb(200,100,0)").encode(
 ).configure_axis(
     labelColor="#ffffff"
 )
-chart.save('chart.html')
+os.makedirs(audio_folder, exist_ok=True)
+save(chart,os.path.join(audio_folder,'film.svg'))
 

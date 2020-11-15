@@ -16,8 +16,8 @@ import os
 #film_name = 'czesto.mp4'
 #czesto_path = os.path.join(film_data_folder, "czesto")
 
-#manager = Manager()
-#manager.loadCsv()
+manager = Manager()
+manager.loadCsv()
 
 #import time
 
@@ -27,7 +27,7 @@ import os
 
 
 #processAllImagesToBinary(images_path=czesto_path, bin_path=film_bin_path) # to wywołać tylko i wyłącznie raz
-#manager.importTrainingDataFromBinaryFile(path_to_file=film_bin_path)
+manager.importTrainingDataFromBinaryFile(path_to_file=bin_photos_path)
 # manager.initializeModel2()
 #manager.loadModel("wygwywamy.h5")
 # exit()
@@ -40,26 +40,35 @@ import os
 #manager.trainEnsamble(5)
 #manager.testEnsamble()
 
-#manager.loadModel('to-dalej-przegrywamy.h5')
-# manager.trainSmart("smartv2", 2000, max_last_improved=20)
-# manager.saveModel('smartv2/last.h5')
+#manager.loadModel('xdp/last0.6354.h5')
+os.makedirs('database/models/xda',exist_ok=True)
+for i in range (0,10):
+    manager.initializeModel2()
+    manager.trainSmart("xda", 10, max_last_improved=20)
+    manager.saveModel('xda/last'+str(1)+'.h5')
+    manager.predictAndSaveToCsv(
+        images_path=live_test_path,
+        binary_path=None, 
+        path_to_csv="results"+str(1)+".csv", 
+        treshold = 0.30)
+#manager.loadModel('xdp/best.h5')
 #manager.predictAndSaveToCsv(
-#    images_path=czesto_path,
-#    binary_path=film_bin_path, 
-#    path_to_csv=os.path.join(film_data_folder, "film.csv"), 
-#    treshold = 0.2)
+#    images_path=live_test_path,
+#    binary_path=None, 
+#    path_to_csv="results.csv", 
+#    treshold = 0.25)
 
 #process_film_csv(jump=step, treshold=2)
 
 
-manager = Manager()
-manager.loadCsv()
-manager.importTrainingDataFromBinaryFile()
-manager.loadMultimodel("multimodel1/krzeslo")
-manager.predictMultimodelAndSaveToCsv()
+#manager = Manager()
+#manager.loadCsv()
+#manager.importTrainingDataFromBinaryFile()
+#manager.loadMultimodel("multimodel1/krzeslo")
+#manager.predictMultimodelAndSaveToCsv()
 #manager.testMultimodel()
 """
-manager.testMultimodel()
+#manager.testMultimodel()
 manager.trainMultimodel(2)
 manager.testMultimodel()
 manager.saveMultimodel("multimodel1/krzeslo")

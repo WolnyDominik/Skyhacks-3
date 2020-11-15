@@ -23,7 +23,7 @@ alt.renderers.enable('svg')#'altair_saver', ['vega-lite', 'svg'])
 #from keras.applications.resnet50 import preprocess_input
 #from keras.preprocessing.image import ImageDataGenerator
 
-training_data_folder = r"."
+training_data_folder = "database"
 film_data_folder = os.path.join(training_data_folder, "films")
 csv_path = os.path.join(training_data_folder, "training_labels.csv")
 csv_test_path = os.path.join(training_data_folder, "training_labels_test.csv")
@@ -157,7 +157,7 @@ def film_to_frames(filename: str, path=film_data_folder, step:float=1):
     print('End conversion')
 
 
-def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1, treshold: int=0):
+def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), jump: float=1, treshold: int=0,film_folder:str=''):
     df = pd.read_csv(csv_path)
     columns = df.columns.tolist()[1:]
     
@@ -235,8 +235,8 @@ def process_film_csv(csv_path: str=os.path.join(film_data_folder, "film.csv"), j
     ).configure_axis(
         labelColor="#ffffff"
     )
-    
-    save(chart,'film.html')
+    os.makedirs(film_folder, exist_ok=True)
+    save(chart,os.path.join(film_folder,'film.svg'))
 
 
 class Manager:

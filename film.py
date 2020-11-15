@@ -2,8 +2,9 @@ import sys
 from model_manager import *
 import os
 
-step = 1
+step = 0.25
 film_name = sys.argv[1]
+film_folder= sys.argv[2]
 czesto_path = os.path.join(film_data_folder, 'czesto')
 
 manager = Manager()
@@ -23,4 +24,4 @@ manager.predictAndSaveToCsv(
     path_to_csv=os.path.join(film_data_folder, "film.csv"), 
     treshold = 0.2)
 
-process_film_csv(jump=step, treshold=1)
+process_film_csv(jump=step, treshold=1,film_folder=film_folder)

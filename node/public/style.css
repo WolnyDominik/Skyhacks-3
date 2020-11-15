@@ -1,28 +1,20 @@
-@keyframes bgcolor_animation {
-    0% { background-color: lightblue; }
-    20% { background-color: rgb(173, 186, 230); }
-    50% { background-color: rgb(148, 177, 230); }
-    80% { background-color: rgb(174, 168, 228); }
-    100% {background-color: lightblue;}
-}
+
 
 body {
-    background-color: lightblue;
+    background-color: #202020;
     font-family: Century Gothic;
-    animation-name: bgcolor_animation;
-    animation-duration: 10s;
-    animation-iteration-count: infinite;
 }
 
 body * {
     box-sizing: border-box;
     margin: 0px;
-    transition: 0.5s;
+    color: rgb(170, 170, 170)
 }
 
 body > header {
     text-align: center;
     margin-bottom: 20px;
+
 }
 
 body > main {
@@ -34,9 +26,11 @@ body > main > *{
 }
 
 #upload_section {
+    margin-top: 10px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    
 }
 
 .redalert {
@@ -47,24 +41,31 @@ body > main > *{
 }
 
 .upload_button{
-    width: 30%;
+    width: 40%;
     padding: 20px;
     text-align: center;
-    background-color: rgb(73, 183, 219);
-    border: 1px solid white;
+    background-color: #202020; rgb(73, 183, 219);
+    border: 1px solid rgb(170, 170, 170);
     cursor: pointer;
     font-size: 2em;
-    color: white;
+    color: rgb(170, 170, 170);
+    user-select: none;
 }
 .upload_button:hover{
-    width: 50%;
-    background-color: rgb(111, 206, 238);
+    transition: 0.1s;
+    background-color: #404040;
+}
+.upload_button:active{
+    color: #202020;
+    background-color: rgb(102, 193, 223);
+    border-color:rgb(170, 170, 170)
 }
 
 .component{
     width: 100%;
-    border-top: 2px white dashed;
-    margin-top: 10px;
+    border-top: 2px solid rgb(170, 170, 170);
+    margin-top: 20px;
+    padding: 10px;
     opacity: 0;
     transition: opacity 2s;
 }

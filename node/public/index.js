@@ -106,6 +106,11 @@ function createProcessingComponent(id, type, file)
         </section>
         <section class="result" id="${id}_result">
         </section>
+        <section class="player">
+        ${type=="video"?`<video width="320" height="240" controls> <source src="${file}" type="video/mp4"> <source src="${file}" type="video/mov">`
+        :` <audio controls>  <source src="${file}" type="audio/mpeg"> Your browser does not support the audio element. </audio> `}
+        <section class="player">
+        
     `;
     component = createComponent(id, "processing", template);
     component.id = id;
